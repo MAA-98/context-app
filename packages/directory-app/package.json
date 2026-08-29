@@ -1,0 +1,17 @@
+{
+  "name": "directory-app",
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "version": "0.1.0",
+  "description": "Directory application",
+  "type": "module",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "zod": "^4.4.3"
+  }
+}

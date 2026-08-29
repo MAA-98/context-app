@@ -127,7 +127,7 @@ ui
 infrastructure
 ```
 
-The composition root is in `index.ts`: it wires infrastructure implementations to application/domain contracts and registers CLI commands.
+The composition root is in `index.tsx`: it wires infrastructure implementations to application/domain contracts and registers CLI commands.
 
 ## Design Principles for 1.x
 
