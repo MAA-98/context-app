@@ -1,3 +1,4 @@
-import { UnixDirectory } from './domain/directory.js';
+export { UnixDirectory, UnixEntry, UnixEntryName } from './domain/directory.js';
+export { UnixAbsolutePathSchema } from './domain/directory.js';
 
-export type Directory = UnixDirectory
+export { getCwdAbsPath, getCwdDirectory } from './infrastructure/get-cwd.js';
