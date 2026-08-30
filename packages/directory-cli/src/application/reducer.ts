@@ -1,11 +1,14 @@
-import type { UnixDirectory, UnixEntry, UnixEntryName } from 'directory-app';
+import type { UnixEntry, UnixEntryName } from 'directory-app';
 import { entryAtCursor } from './entry-at-cursor.js';
-import { ExitStatus, State } from './state.js';
+import { DirectoryBuffer, EntryPath, View } from '../domain/view.js';
 import { updateFoldNodeAtPath, setFolds, unfoldFoldSequence, addFold } from './folds.js';
+import { cursorForRow, cursorMatchesRow } from './cursor.js';
+import { visibleRows } from './visible-rows.js';
 
 export type Action =
   | {
       kind: 'expandDir'; // request to loading directory entries
+      path: EntryPath;
     }
   | {
       kind: 'directoryLoaded'; // response to loading entries
@@ -18,9 +21,6 @@ export type Action =
   | {
       kind: 'prevEntry';
     }
-  // | {
-  //     kind: 'inDir';
-  //   }
   | {
       kind: 'outDir';
     }
@@ -35,7 +35,7 @@ export type Action =
     }
   | {
       kind: 'exit';
-      exitStatus: ExitStatus;
+      exitMessage: string;
     };
 
 function updateEntries(
@@ -104,49 +104,81 @@ function updateEntries(
 }
 
 function updateEntriesAtPath(
-  buffer: UnixDirectory,
+  buffer: DirectoryBuffer,
   path: UnixEntryName[],
   newEntries: UnixEntry[] | undefined,
-): UnixDirectory {
+): DirectoryBuffer {
   return {
     ...buffer,
     entries: updateEntries(buffer.entries, path, newEntries),
   };
 }
 
-export function reducer(state: State, action: Action): State {
+export function reducer(view: View, action: Action): View {
   switch (action.kind) {
+    case 'nextEntry':
+    case 'prevEntry': {
+      const cursor = view.cursor;
+
+      const rows = visibleRows(view.buffer, view.folds);
+
+      const currentIndex = rows.findIndex((row) =>
+        cursorMatchesRow(cursor, row),
+      );
+
+      if (currentIndex === -1) {
+        return view;
+      }
+
+      const direction = action.kind === 'nextEntry' ? 1 : -1;
+      const targetIndex = currentIndex + direction;
+
+      if (targetIndex < 0 || targetIndex >= rows.length) {
+        return view;
+      }
+
+      const targetRow = rows[targetIndex];
+
+      return {
+        ...view,
+        cursor: cursorForRow(targetRow),
+      };
+    }
+
     case 'expandDir':
       // The asynchronous directory load is handled by App.
-      return state;
+      return view;
 
-    case 'directoryLoaded':
+    case 'directoryLoaded': {
+      // Add new entries to path
       const buffer = updateEntriesAtPath(
-        state.view.buffer,
+        view.buffer,
         action.path,
         action.entries,
       );
 
-      const folds = updateFoldNodeAtPath(
-        state.view.folds,
-        action.path,
-        (node) => setFolds(node, action.entries),
+      // Make all entries folded at path
+      const folds = updateFoldNodeAtPath(view.folds, action.path, (node) =>
+        setFolds(node, action.entries),
       );
 
-      const firstEntry = action.entries[0];
+      // Create cursor on fold or still at parent
+      const entryNames = action.entries.map((entry) => entry.name);
+      const cursor =
+        entryNames.length === 0
+          ? view.cursor
+          : {
+              kind: 'fold' as const,
+              parentPath: action.path,
+              entryNames,
+            };
 
       return {
-        ...state,
-        view: {
-          ...state.view,
-          buffer,
-          folds,
-          cursor:
-            firstEntry === undefined
-              ? action.path
-              : [...action.path, firstEntry.name],
-        },
+        buffer,
+        folds,
+        cursor,
       };
+    }
 
     // case 'collapseDir': {
     //   const cursor = state.view.cursor;
@@ -171,144 +203,137 @@ export function reducer(state: State, action: Action): State {
     //   };
     // }
 
-    // TODO: Malformed cases result in trying to fix state
-    case 'nextEntry':
-    case 'prevEntry': {
-      const cursor = state.view.cursor;
-      const currentName = cursor[cursor.length - 1];
+    case 'outDir': {
+      const cursor = view.cursor;
 
-      // If cursor is empty then currentName is undefined.
-      if (currentName === undefined) {
-        return state;
+      if (cursor.kind === 'fold') {
+        if (cursor.parentPath.length === 0) {
+          return view;
+        }
+
+        return {
+          ...view,
+          cursor: {
+            kind: 'entry',
+            path: cursor.parentPath,
+          },
+        };
       }
 
-      const parentEntry = entryAtCursor(state.view.buffer, cursor.slice(0, -1));
-
-      const entries =
-        cursor.length === 1
-          ? state.view.buffer.entries
-          : parentEntry?.kind === 'directory'
-            ? parentEntry.entries
-            : undefined;
-
-      if (entries === undefined || entries.length === 0) {
-        return state;
+      if (cursor.path.length <= 1) {
+        return view;
       }
-
-      const currentIndex = entries.findIndex(
-        (entry) => entry.name === currentName,
-      );
-
-      if (currentIndex === -1) {
-        return state; // TODO: Fix stale or malformed cursor
-      }
-
-      const direction = action.kind === 'nextEntry' ? 1 : -1;
-      const targetIndex = currentIndex + direction;
-
-      if (targetIndex < 0 || targetIndex >= entries.length) {
-        return state;
-      }
-
-      const targetEntry = entries[targetIndex];
 
       return {
-        ...state,
-        view: {
-          ...state.view,
-          cursor: [...cursor.slice(0, -1), targetEntry.name],
+        ...view,
+        cursor: {
+          kind: 'entry',
+          path: cursor.path.slice(0, -1),
         },
       };
     }
 
-    case 'outDir':
-      const cursor = state.view.cursor;
-
-      if (cursor.length <= 1) {
-        return state;
-      }
-
-      const retreatedCursor = cursor.slice(0, -1);
-
-      return {
-        ...state,
-        view: {
-          ...state.view,
-          cursor: retreatedCursor,
-        },
-      };
-
     case 'toggleFold':
-      return state;
+      return view;
 
     case 'fold': {
-      const cursor = state.view.cursor;
-      const currentName = cursor[cursor.length - 1];
+      const cursor = view.cursor;
 
-      if (currentName === undefined) {
-        return state;
+      if (cursor.kind !== 'entry') {
+        return view;
       }
 
-      const entry = entryAtCursor(state.view.buffer, cursor);
+      const entry = entryAtCursor(view.buffer, cursor);
 
       if (entry === undefined) {
-        return state;
+        return view;
       }
 
-      const parentPath = cursor.slice(0, -1);
+      const currentName = cursor.path[cursor.path.length - 1];
 
-      const folds = updateFoldNodeAtPath(state.view.folds, parentPath, (node) =>
+      if (currentName === undefined) {
+        return view;
+      }
+
+      const parentPath = cursor.path.slice(0, -1);
+
+      const folds = updateFoldNodeAtPath(view.folds, parentPath, (node) =>
         addFold(node, currentName),
       );
 
-      return {
-        ...state,
-        view: {
-          ...state.view,
-          folds,
-        },
+      const updatedView = {
+        ...view,
+        folds,
       };
+
+      // The entry is no longer visible after folding it. Move the
+      // cursor onto the resulting fold row.
+      const foldedRow = visibleRows(updatedView.buffer, updatedView.folds).find(
+        (row) =>
+          row.kind === 'fold' &&
+          row.parentPath.length === parentPath.length &&
+          row.parentPath.every((name, index) => name === parentPath[index]) &&
+          row.entryNames.includes(currentName),
+      );
+
+      return foldedRow === undefined
+        ? updatedView
+        : {
+            ...updatedView,
+            cursor: cursorForRow(foldedRow),
+          };
     }
 
     case 'unfold': {
-      const cursor = state.view.cursor;
-      const currentName = cursor[cursor.length - 1];
+      const cursor = view.cursor;
 
-      if (currentName === undefined) {
-        return state;
+      if (cursor.kind !== 'fold') {
+        return view;
       }
 
-      const parentPath = cursor.slice(0, -1);
-      const parentEntry = entryAtCursor(state.view.buffer, parentPath);
+      const firstEntryName = cursor.entryNames[0];
+
+      if (firstEntryName === undefined) {
+        return view;
+      }
+
+      const { parentPath } = cursor;
+
+      const parentEntry =
+        parentPath.length === 0
+          ? undefined
+          : entryAtCursor(view.buffer, {
+              kind: 'entry',
+              path: parentPath,
+            });
 
       const entries =
         parentPath.length === 0
-          ? state.view.buffer.entries
+          ? view.buffer.entries
           : parentEntry?.kind === 'directory'
             ? parentEntry.entries
             : undefined;
 
       if (entries === undefined) {
-        return state;
+        return view;
       }
 
-      const folds = updateFoldNodeAtPath(state.view.folds, parentPath, (node) =>
-        unfoldFoldSequence(node, entries, currentName),
+      const folds = updateFoldNodeAtPath(view.folds, parentPath, (node) =>
+        unfoldFoldSequence(node, entries, firstEntryName),
       );
 
       return {
-        ...state,
-        view: {
-          ...state.view,
-          folds,
+        ...view,
+        folds,
+        cursor: {
+          kind: 'entry',
+          path: [...parentPath, firstEntryName],
         },
       };
     }
 
     case 'exit':
-      return {
-        ...state,
-        exitStatus: action.exitStatus,
-      };
+      // Exit is handled by App.
+      return view;
   }
 }

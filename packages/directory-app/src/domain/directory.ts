@@ -48,10 +48,3 @@ export type UnixEntry =
       // Undefined entries for lazy loading the 'buffer'
       entries?: UnixEntry[];
     };
-
-// UNIX DIR
-
-export type UnixDirectory = {
-  rootAddress: UnixAbsolutePath;
-  entries: UnixEntry[];
-};

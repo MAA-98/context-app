@@ -5,31 +5,33 @@ import { render } from 'ink';
 import { getCwdAbsPath, getDirLazyEntries } from 'directory-app';
 import type { UnixEntryName } from 'directory-app';
 
-import type { State } from './application/state.js';
 import { createFoldNode } from './application/folds.js';
 
-import { App } from './ui/App.js';
+import { AppProps, App } from './ui/App.js';
 
 const program = new Command();
 
-async function loadInitialState(): Promise<State> {
+async function loadInitialProps(): Promise<AppProps> {
   const rootAddress = getCwdAbsPath();
   const lazyEntries = await getDirLazyEntries(rootAddress);
 
   const firstEntry = lazyEntries[0];
-  const initialCursor: UnixEntryName[] =
+  const initialCursorPath: UnixEntryName[] =
     firstEntry === undefined ? [] : [firstEntry.name];
   
   return {
-    view: {
+    rootAddress,
+    initialView: {
       buffer: {
-        rootAddress,
-        entries: lazyEntries
+        entries: lazyEntries,
       },
-      cursor: initialCursor,
-      folds: createFoldNode()
-    }
-  }
+      cursor: {
+        kind: 'entry',
+        path: initialCursorPath,
+      },
+      folds: createFoldNode(),
+    },
+  };
 }
 
 program
@@ -38,9 +40,9 @@ program
   .version('0.1.0')
   .helpOption('--help')
   .action(async () => {
-    const initialState = await loadInitialState()
+    const initialProps = await loadInitialProps()
     
-    const app = render(<App initialState={initialState} />);
+    const app = render(<App {...initialProps} />);
 
     await app.waitUntilExit();
   });

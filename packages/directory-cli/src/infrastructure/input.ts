@@ -2,7 +2,8 @@ import type { Key } from 'ink';
 
 import type { Action } from '../application/reducer.js';
 import { entryAtCursor } from '../application/entry-at-cursor.js';
-import type { State } from '../application/state.js';
+import type { View } from '../domain/view.js';
+import { pathAtCursor } from '../application/cursor.js';
 
 export type PendingInput = 'z';
 
@@ -11,7 +12,7 @@ export type InputResult = Action | PendingInput | undefined;
 export function inputToInputResult(
   input: string,
   key: Key,
-  state: State,
+  view: View,
   pendingInput?: PendingInput,
 ): InputResult {
   // Adding Pending Input
@@ -43,23 +44,25 @@ export function inputToInputResult(
     return undefined;
   }
 
-  // not prefixed inputs
+  // Not prefixed inputs
   if (input === 'l' || key.rightArrow) {
-    const selectedEntry = entryAtCursor(state.view.buffer, state.view.cursor);
+    const selectedEntry = entryAtCursor(view.buffer, view.cursor);
 
     if (
+      view.cursor.kind === 'entry' &&
       selectedEntry?.kind === 'directory' &&
       selectedEntry.entries === undefined
     ) {
       return {
         kind: 'expandDir',
+        path: view.cursor.path,
       };
     }
     return undefined;
   }
 
   if (input === 'h' || key.leftArrow) {
-    if (state.view.cursor.length <= 1) {
+    if (pathAtCursor(view.cursor).length <= 1) {
       return undefined;
     }
 
@@ -83,9 +86,7 @@ export function inputToInputResult(
   if (input === 'q' || key.escape) {
     return {
       kind: 'exit',
-      exitStatus: {
-        exitMessage: '',
-      },
+      exitMessage: '',
     };
   }
 

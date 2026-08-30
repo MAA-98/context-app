@@ -1,24 +1,41 @@
-import type { UnixDirectory, UnixEntry } from 'directory-app';
-import type { Cursor } from './state.js';
+import type { UnixEntry } from 'directory-app';
+import type { Cursor, DirectoryBuffer, EntryPath } from '../domain/view.js';
 
-export function entryAtCursor(
-  directory: UnixDirectory,
-  cursor: Cursor,
+export function entryAtPath(
+  buffer: DirectoryBuffer,
+  path: EntryPath,
 ): UnixEntry | undefined {
-  let entries = directory.entries;
+  if (path.length === 0) {
+    return undefined;
+  }
+
+  let entries = buffer.entries;
   let entry: UnixEntry | undefined;
 
-  for (const name of cursor) {
+  for (const [index, name] of path.entries()) {
     entry = entries.find((candidate) => candidate.name === name);
 
     if (entry === undefined) {
       return undefined;
     }
 
-    if (entry.kind === 'directory' && entry.entries !== undefined) {
-      entries = entry.entries;
+    if (index === path.length - 1) {
+      return entry;
     }
+
+    if (entry.kind !== 'directory' || entry.entries === undefined) {
+      return undefined;
+    }
+
+    entries = entry.entries;
   }
 
-  return entry;
+  return undefined;
+}
+
+export function entryAtCursor(
+  buffer: DirectoryBuffer,
+  cursor: Cursor,
+): UnixEntry | undefined {
+  return cursor.kind === 'entry' ? entryAtPath(buffer, cursor.path) : undefined;
 }

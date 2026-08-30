@@ -1,6 +1,6 @@
 import type { UnixEntry, UnixEntryName } from 'directory-app';
 
-import type { FoldNode } from './state.js';
+import type { FoldNode } from '../domain/view.js';
 
 export function createFoldNode(): FoldNode {
   return {
