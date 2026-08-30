@@ -8,10 +8,10 @@ import {
   type UnixEntry,
 } from '../domain/directory.js';
 
-export async function getDirectoryEntries(
-  rootAddress: UnixAbsolutePath,
+export async function getDirLazyEntries(
+  address: UnixAbsolutePath,
 ): Promise<UnixEntry[]> {
-  const directoryEntries = await readdir(rootAddress, {
+  const directoryEntries = await readdir(address, {
     withFileTypes: true,
   });
 
@@ -21,7 +21,7 @@ export async function getDirectoryEntries(
 
       if (directoryEntry.isSymbolicLink()) {
         const target = UnixPathSchema.parse(
-          await readlink(join(rootAddress, directoryEntry.name)),
+          await readlink(join(address, directoryEntry.name)),
         );
 
         return {
@@ -47,7 +47,7 @@ export async function getDirectoryEntries(
       }
 
       throw new Error(
-        `Unsupported filesystem entry "${join(rootAddress, directoryEntry.name)}"`,
+        `Unsupported filesystem entry "${join(address, directoryEntry.name)}"`,
       );
     }),
   );

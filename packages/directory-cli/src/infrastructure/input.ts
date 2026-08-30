@@ -25,6 +25,12 @@ export function inputToAction(
       kind: 'nextEntry',
     };
   }
+  
+  if (input === 'l' || key.rightArrow) {
+    return {
+      kind: 'expandDir',
+    };
+  }
 
   return undefined;
 }

@@ -1,55 +1,94 @@
+import { join } from 'node:path';
 import { Box, Text, useApp, useInput } from 'ink';
 import { useEffect, useReducer } from 'react';
+
+import { getDirLazyEntries } from 'directory-app';
 import type { UnixEntry } from 'directory-app';
-import { reducer, type State } from '../application/reducer.js';
+
+import { reducer } from '../application/reducer.js';
+import type { State } from '../application/reducer.js';
 import { inputToAction } from '../infrastructure/input.js';
-
-function DirectoryEntry({
-  entry,
-  selected
-}: {
-  entry: UnixEntry,
-  selected: boolean
-}) {
-  switch (entry.kind) {
-    case 'file':
-      return (
-        <Text inverse={selected}>
-          {entry.name}
-        </Text>
-      );
-
-    case 'symlink':
-      return (
-        <Text inverse={selected}>
-          {entry.name} -&gt; {entry.target}
-        </Text>
-      );
-
-    case 'directory':
-      return (
-        <Text inverse={selected} color="blue">
-          {entry.name}/
-        </Text>
-      );
-  }
-}
+import DirEntries from './components/dir-entries.js';
 
 type Props = {
-  initial: State;
+  initialState: State;
 };
 
-export function App({ initial }: Props) {
-  const [state, dispatch] = useReducer(reducer, initial);
-  const { buffer, view, exitStatus } = state;
+function getEntryAtPath(
+  entries: UnixEntry[],
+  path: string[],
+): UnixEntry | undefined {
+  const [currentName, ...remainingPath] = path;
+
+  if (currentName === undefined) {
+    return undefined;
+  }
+
+  const entry = entries.find(({ name }) => name === currentName);
+
+  if (entry === undefined || remainingPath.length === 0) {
+    return entry;
+  }
+
+  if (entry.kind !== 'directory' || entry.entries === undefined) {
+    return undefined;
+  }
+
+  return getEntryAtPath(entry.entries, remainingPath);
+}
+
+export function App({ initialState }: Props) {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  
+  const { view, exitStatus } = state;
+  const { buffer, cursor } = view;
 
   // --- Input ---
-  useInput((input, key) => {
+  useInput((input, key) => { // TODO: Clean up below
     const action = inputToAction(input, key);
-
-    if (action !== undefined) {
-      dispatch(action);
+    
+    if (action === undefined) {
+      return;
     }
+
+    if (action.kind === 'expandDir') {
+      const selectedEntry = getEntryAtPath(buffer.entries, view.cursor);
+
+      if (selectedEntry?.kind !== 'directory') {
+        return;
+      }
+
+      // Already expanded.
+      if (selectedEntry.entries !== undefined) {
+        return;
+      }
+
+      const address = join(buffer.rootAddress, ...view.cursor);
+
+      void getDirLazyEntries(address)
+        .then((entries) => {
+          dispatch({
+            kind: 'directoryLoaded',
+            path: view.cursor,
+            entries,
+          });
+        })
+        .catch((error: unknown) => {
+          const message =
+            error instanceof Error ? error.message : String(error);
+
+          dispatch({
+            kind: 'exit',
+            exitStatus: {
+              exitMessage: `Unable to open directory: ${message}`,
+            },
+          });
+        });
+
+      return;
+    }
+
+    dispatch(action);
   });
 
   // --- Exit ---
@@ -61,8 +100,6 @@ export function App({ initial }: Props) {
   }, [state, exit]);
 
   // --- JSX ---
-  const cursorName = view.cursor[view.cursor.length - 1];
-  
   if (exitStatus !== undefined) {
     return <Text>{exitStatus.exitMessage}</Text>;
   }
@@ -72,13 +109,11 @@ export function App({ initial }: Props) {
       {buffer.entries.length === 0 ? (
         <Text dimColor>Directory is empty.</Text>
       ) : (
-        buffer.entries.map((entry) => (
-          <DirectoryEntry
-            key={`${entry.kind}:${entry.name}`}
-            entry={entry}
-            selected={entry.name === cursorName}
-          />
-        ))
+        <DirEntries
+          entries={buffer.entries}
+          cursor={view.cursor}
+          indent={0}
+        />
       )}
     </Box>
   );

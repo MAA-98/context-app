@@ -2,11 +2,32 @@
 import { Command } from 'commander';
 import { render } from 'ink';
 
-import { getCwdDirectory } from 'directory-app';
-import type { UnixEntryName, UnixDirectory } from 'directory-app';
+import { getCwdAbsPath, getDirLazyEntries } from 'directory-app';
+import type { UnixEntryName } from 'directory-app';
+
 import { App } from './ui/App.js';
+import type { State } from './application/reducer.js';
 
 const program = new Command();
+
+async function loadInitialState(): Promise<State> {
+  const rootAddress = getCwdAbsPath();
+  const lazyEntries = await getDirLazyEntries(rootAddress);
+
+  const firstEntry = lazyEntries[0];
+  const initialCursor: UnixEntryName[] =
+    firstEntry === undefined ? [] : [firstEntry.name];
+  
+  return {
+    view: {
+      buffer: {
+        rootAddress,
+        entries: lazyEntries
+      },
+      cursor: initialCursor,
+    }
+  }
+}
 
 program
   .name('direx')
@@ -14,21 +35,9 @@ program
   .version('0.1.0')
   .helpOption('--help')
   .action(async () => {
-    const initialDirectory: UnixDirectory = await getCwdDirectory();
-    const firstEntry = initialDirectory.entries?.[0];
-    const initialCursor: UnixEntryName[] =
-      firstEntry === undefined ? [] : [firstEntry.name];
-
-    const app = render(
-      <App
-        initial={{
-          buffer: initialDirectory,
-          view: {
-            cursor: initialCursor,
-          },
-        }}
-      />,
-    );
+    const initialState = await loadInitialState()
+    
+    const app = render(<App initialState={initialState} />);
 
     await app.waitUntilExit();
   });

@@ -2,7 +2,6 @@ import {
   UnixAbsolutePathSchema,
   type UnixAbsolutePath, UnixDirectory,
 } from '../domain/directory.js';
-import { getDirectoryEntries } from './get-dir-entries.js';
 
 export function getCwdAbsPath(): UnixAbsolutePath {
   const currentWorkingDirectory = process.cwd();
@@ -20,14 +19,4 @@ export function getCwdAbsPath(): UnixAbsolutePath {
   }
 
   return result.data;
-}
-
-export async function getCwdDirectory(): Promise<UnixDirectory> {
-  const rootAddress = getCwdAbsPath();
-  const entries = await getDirectoryEntries(rootAddress);
-
-  return {
-    rootAddress,
-    entries,
-  };
 }
