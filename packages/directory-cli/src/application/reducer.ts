@@ -1,8 +1,10 @@
 import type { UnixDirectory, UnixEntry, UnixEntryName } from 'directory-app';
 
+export type Cursor = UnixEntryName[];
+
 export type View = {
   buffer: UnixDirectory;
-  cursor: UnixEntryName[];
+  cursor: Cursor;
 };
 
 export type ExitStatus = {

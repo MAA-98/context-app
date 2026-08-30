@@ -1,9 +1,11 @@
 import type { Key } from 'ink';
-import type { Action } from '../application/reducer.js';
+import type { Action, State } from '../application/reducer.js';
+import { entryAtCursor } from '../application/entry-at-cursor.js';
 
 export function inputToAction(
   input: string,
   key: Key,
+  state: State,
 ): Action | undefined {
   if (input === 'q' || key.escape) {
     return {
@@ -13,7 +15,7 @@ export function inputToAction(
       },
     };
   }
-  
+
   if (input === 'k' || key.upArrow) {
     return {
       kind: 'prevEntry',
@@ -25,11 +27,19 @@ export function inputToAction(
       kind: 'nextEntry',
     };
   }
-  
+
   if (input === 'l' || key.rightArrow) {
-    return {
-      kind: 'expandDir',
-    };
+    const selectedEntry = entryAtCursor(state.view.buffer, state.view.cursor);
+    
+    if (
+      selectedEntry?.kind === 'directory' &&
+      selectedEntry.entries === undefined
+    ) {
+      return {
+        kind: 'expandDir',
+      };
+    }
+    return undefined
   }
 
   return undefined;

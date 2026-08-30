@@ -3,7 +3,6 @@ import { Box, Text, useApp, useInput } from 'ink';
 import { useEffect, useReducer } from 'react';
 
 import { getDirLazyEntries } from 'directory-app';
-import type { UnixEntry } from 'directory-app';
 
 import { reducer } from '../application/reducer.js';
 import type { State } from '../application/reducer.js';
@@ -14,29 +13,6 @@ type Props = {
   initialState: State;
 };
 
-function getEntryAtPath(
-  entries: UnixEntry[],
-  path: string[],
-): UnixEntry | undefined {
-  const [currentName, ...remainingPath] = path;
-
-  if (currentName === undefined) {
-    return undefined;
-  }
-
-  const entry = entries.find(({ name }) => name === currentName);
-
-  if (entry === undefined || remainingPath.length === 0) {
-    return entry;
-  }
-
-  if (entry.kind !== 'directory' || entry.entries === undefined) {
-    return undefined;
-  }
-
-  return getEntryAtPath(entry.entries, remainingPath);
-}
-
 export function App({ initialState }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
   
@@ -44,32 +20,21 @@ export function App({ initialState }: Props) {
   const { buffer, cursor } = view;
 
   // --- Input ---
-  useInput((input, key) => { // TODO: Clean up below
-    const action = inputToAction(input, key);
+  useInput((input, key) => {
+    const action = inputToAction(input, key, state);
     
     if (action === undefined) {
       return;
     }
 
     if (action.kind === 'expandDir') {
-      const selectedEntry = getEntryAtPath(buffer.entries, view.cursor);
-
-      if (selectedEntry?.kind !== 'directory') {
-        return;
-      }
-
-      // Already expanded.
-      if (selectedEntry.entries !== undefined) {
-        return;
-      }
-
-      const address = join(buffer.rootAddress, ...view.cursor);
+      const address = join(buffer.rootAddress, ...cursor);
 
       void getDirLazyEntries(address)
         .then((entries) => {
           dispatch({
             kind: 'directoryLoaded',
-            path: view.cursor,
+            path: cursor,
             entries,
           });
         })
@@ -97,7 +62,7 @@ export function App({ initialState }: Props) {
     if (exitStatus !== undefined) {
       exit();
     }
-  }, [state, exit]);
+  }, [exitStatus, exit]);
 
   // --- JSX ---
   if (exitStatus !== undefined) {
@@ -111,7 +76,7 @@ export function App({ initialState }: Props) {
       ) : (
         <DirEntries
           entries={buffer.entries}
-          cursor={view.cursor}
+          cursor={cursor}
           indent={0}
         />
       )}
