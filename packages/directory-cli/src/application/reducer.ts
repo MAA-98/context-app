@@ -22,6 +22,9 @@ export type Action =
       kind: 'expandDir';
     }
   | {
+      kind: 'collapseDir';
+    }
+  | {
       kind: 'directoryLoaded';
       path: UnixEntryName[];
       entries: UnixEntry[];
@@ -40,7 +43,7 @@ export type Action =
 function updateEntries(
   entries: UnixEntry[],
   currentPath: UnixEntryName[],
-  newEntries: UnixEntry[],
+  newEntries: UnixEntry[] | undefined,
 ): UnixEntry[] {
   const [currentName, ...remainingPath] = currentPath;
 
@@ -62,6 +65,13 @@ function updateEntries(
         throw new Error(
           `Cannot load entries for non-directory entry "${entry.name}" of kind "${entry.kind}"`,
         );
+      }
+      
+      if (newEntries === undefined) {
+        return {
+          kind: 'directory' as const,
+          name: entry.name,
+        };
       }
       
       return {
@@ -98,7 +108,7 @@ function updateEntries(
 function updateEntriesAtPath(
   buffer: UnixDirectory,
   path: UnixEntryName[],
-  newEntries: UnixEntry[],
+  newEntries: UnixEntry[] | undefined,
 ): UnixDirectory {
   return {
     ...buffer,
@@ -112,15 +122,38 @@ export function reducer(state: State, action: Action): State {
       // The asynchronous directory load is handled by App.
       return state;
 
+    case 'collapseDir': {
+      const cursor = state.view.cursor;
+
+      if (cursor.length <= 1) {
+        return state;
+      }
+
+      const collapsedCursor = cursor.slice(0, -1);
+
+      return {
+        ...state,
+        view: {
+          ...state.view,
+          buffer: updateEntriesAtPath(
+            state.view.buffer,
+            collapsedCursor,
+            undefined,
+          ),
+          cursor: collapsedCursor,
+        },
+      };
+    }
+    
     case 'directoryLoaded':
       const buffer = updateEntriesAtPath(
         state.view.buffer,
         action.path,
         action.entries,
       );
-      
+
       const firstEntry = action.entries[0];
-      
+
       return {
         ...state,
         view: {
@@ -143,16 +176,16 @@ export function reducer(state: State, action: Action): State {
       if (currentName === undefined) {
         return state;
       }
-      
+
       const parentEntry = entryAtCursor(state.view.buffer, cursor.slice(0, -1));
-      
+
       const entries =
         cursor.length === 1
           ? state.view.buffer.entries
           : parentEntry?.kind === 'directory'
             ? parentEntry.entries
             : undefined;
-      
+
       if (entries === undefined || entries.length === 0) {
         return state;
       }

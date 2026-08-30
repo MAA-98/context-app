@@ -7,12 +7,27 @@ export function inputToAction(
   key: Key,
   state: State,
 ): Action | undefined {
-  if (input === 'q' || key.escape) {
+  if (input === 'l' || key.rightArrow) {
+    const selectedEntry = entryAtCursor(state.view.buffer, state.view.cursor);
+
+    if (
+      selectedEntry?.kind === 'directory' &&
+      selectedEntry.entries === undefined
+    ) {
+      return {
+        kind: 'expandDir',
+      };
+    }
+    return undefined;
+  }
+
+  if (input === 'h' || key.leftArrow) {
+    if (state.view.cursor.length <= 1) {
+      return undefined;
+    }
+
     return {
-      kind: 'exit',
-      exitStatus: {
-        exitMessage: '',
-      },
+      kind: 'collapseDir',
     };
   }
 
@@ -27,19 +42,14 @@ export function inputToAction(
       kind: 'nextEntry',
     };
   }
-
-  if (input === 'l' || key.rightArrow) {
-    const selectedEntry = entryAtCursor(state.view.buffer, state.view.cursor);
-    
-    if (
-      selectedEntry?.kind === 'directory' &&
-      selectedEntry.entries === undefined
-    ) {
-      return {
-        kind: 'expandDir',
-      };
-    }
-    return undefined
+  
+  if (input === 'q' || key.escape) {
+    return {
+      kind: 'exit',
+      exitStatus: {
+        exitMessage: '',
+      },
+    };
   }
 
   return undefined;
