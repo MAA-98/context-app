@@ -5,8 +5,10 @@ import { render } from 'ink';
 import { getCwdAbsPath, getDirLazyEntries } from 'directory-app';
 import type { UnixEntryName } from 'directory-app';
 
+import type { State } from './application/state.js';
+import { createFoldNode } from './application/folds.js';
+
 import { App } from './ui/App.js';
-import type { State } from './application/reducer.js';
 
 const program = new Command();
 
@@ -25,6 +27,7 @@ async function loadInitialState(): Promise<State> {
         entries: lazyEntries
       },
       cursor: initialCursor,
+      folds: createFoldNode()
     }
   }
 }

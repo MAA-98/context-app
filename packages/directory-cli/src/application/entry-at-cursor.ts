@@ -1,5 +1,5 @@
 import type { UnixDirectory, UnixEntry } from 'directory-app';
-import type { Cursor } from './reducer.js';
+import type { Cursor } from './state.js';
 
 export function entryAtCursor(
   directory: UnixDirectory,

@@ -1,6 +1,6 @@
 import {
   UnixAbsolutePathSchema,
-  type UnixAbsolutePath, UnixDirectory,
+  type UnixAbsolutePath,
 } from '../domain/directory.js';
 
 export function getCwdAbsPath(): UnixAbsolutePath {

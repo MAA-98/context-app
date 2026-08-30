@@ -1,12 +1,12 @@
 import { join } from 'node:path';
 import { Box, Text, useApp, useInput } from 'ink';
-import { useEffect, useReducer } from 'react';
+import { useEffect, useReducer, useRef } from 'react';
 
 import { getDirLazyEntries } from 'directory-app';
 
 import { reducer } from '../application/reducer.js';
-import type { State } from '../application/reducer.js';
-import { inputToAction } from '../infrastructure/input.js';
+import type { State } from '../application/state.js';
+import { inputToInputResult, PendingInput } from '../infrastructure/input.js';
 import DirEntries from './components/dir-entries.js';
 
 type Props = {
@@ -15,17 +15,27 @@ type Props = {
 
 export function App({ initialState }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const pendingInput = useRef<PendingInput | undefined>(undefined);
   
   const { view, exitStatus } = state;
-  const { buffer, cursor } = view;
+  const { buffer, cursor, folds } = view;
 
   // --- Input ---
   useInput((input, key) => {
-    const action = inputToAction(input, key, state);
+    const result = inputToInputResult(input, key, state, pendingInput.current);
     
-    if (action === undefined) {
+    if (result === 'z') {
+      pendingInput.current = result;
       return;
     }
+    
+    pendingInput.current = undefined;
+    
+    if (result === undefined) {
+      return;
+    }
+    
+    const action = result;
 
     if (action.kind === 'expandDir') {
       const address = join(buffer.rootAddress, ...cursor);
@@ -76,6 +86,7 @@ export function App({ initialState }: Props) {
       ) : (
         <DirEntries
           entries={buffer.entries}
+          foldNode={folds}
           cursor={cursor}
           indent={0}
         />

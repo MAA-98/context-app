@@ -1,31 +1,14 @@
 import type { UnixDirectory, UnixEntry, UnixEntryName } from 'directory-app';
 import { entryAtCursor } from './entry-at-cursor.js';
-
-export type Cursor = UnixEntryName[];
-
-export type View = {
-  buffer: UnixDirectory;
-  cursor: Cursor;
-};
-
-export type ExitStatus = {
-  exitMessage: string;
-};
-
-export type State = {
-  view: View;
-  exitStatus?: ExitStatus;
-};
+import { ExitStatus, State } from './state.js';
+import { updateFoldNodeAtPath, setFolds, unfoldFoldSequence, addFold } from './folds.js';
 
 export type Action =
   | {
-      kind: 'expandDir';
+      kind: 'expandDir'; // request to loading directory entries
     }
   | {
-      kind: 'collapseDir';
-    }
-  | {
-      kind: 'directoryLoaded';
+      kind: 'directoryLoaded'; // response to loading entries
       path: UnixEntryName[];
       entries: UnixEntry[];
     }
@@ -34,6 +17,21 @@ export type Action =
     }
   | {
       kind: 'prevEntry';
+    }
+  // | {
+  //     kind: 'inDir';
+  //   }
+  | {
+      kind: 'outDir';
+    }
+  | {
+      kind: 'toggleFold';
+    }
+  | {
+      kind: 'fold';
+    }
+  | {
+      kind: 'unfold';
     }
   | {
       kind: 'exit';
@@ -122,34 +120,17 @@ export function reducer(state: State, action: Action): State {
       // The asynchronous directory load is handled by App.
       return state;
 
-    case 'collapseDir': {
-      const cursor = state.view.cursor;
-
-      if (cursor.length <= 1) {
-        return state;
-      }
-
-      const collapsedCursor = cursor.slice(0, -1);
-
-      return {
-        ...state,
-        view: {
-          ...state.view,
-          buffer: updateEntriesAtPath(
-            state.view.buffer,
-            collapsedCursor,
-            undefined,
-          ),
-          cursor: collapsedCursor,
-        },
-      };
-    }
-    
     case 'directoryLoaded':
       const buffer = updateEntriesAtPath(
         state.view.buffer,
         action.path,
         action.entries,
+      );
+
+      const folds = updateFoldNodeAtPath(
+        state.view.folds,
+        action.path,
+        (node) => setFolds(node, action.entries),
       );
 
       const firstEntry = action.entries[0];
@@ -159,12 +140,36 @@ export function reducer(state: State, action: Action): State {
         view: {
           ...state.view,
           buffer,
+          folds,
           cursor:
             firstEntry === undefined
               ? action.path
               : [...action.path, firstEntry.name],
         },
       };
+
+    // case 'collapseDir': {
+    //   const cursor = state.view.cursor;
+    //
+    //   if (cursor.length <= 1) {
+    //     return state;
+    //   }
+    //
+    //   const retreatedCursor = cursor.slice(0, -1);
+    //
+    //   return {
+    //     ...state,
+    //     view: {
+    //       ...state.view,
+    //       buffer: updateEntriesAtPath(
+    //         state.view.buffer,
+    //         retreatedCursor,
+    //         undefined,
+    //       ),
+    //       cursor: retreatedCursor,
+    //     },
+    //   };
+    // }
 
     // TODO: Malformed cases result in trying to fix state
     case 'nextEntry':
@@ -212,6 +217,90 @@ export function reducer(state: State, action: Action): State {
         view: {
           ...state.view,
           cursor: [...cursor.slice(0, -1), targetEntry.name],
+        },
+      };
+    }
+
+    case 'outDir':
+      const cursor = state.view.cursor;
+
+      if (cursor.length <= 1) {
+        return state;
+      }
+
+      const retreatedCursor = cursor.slice(0, -1);
+
+      return {
+        ...state,
+        view: {
+          ...state.view,
+          cursor: retreatedCursor,
+        },
+      };
+
+    case 'toggleFold':
+      return state;
+
+    case 'fold': {
+      const cursor = state.view.cursor;
+      const currentName = cursor[cursor.length - 1];
+
+      if (currentName === undefined) {
+        return state;
+      }
+
+      const entry = entryAtCursor(state.view.buffer, cursor);
+
+      if (entry === undefined) {
+        return state;
+      }
+
+      const parentPath = cursor.slice(0, -1);
+
+      const folds = updateFoldNodeAtPath(state.view.folds, parentPath, (node) =>
+        addFold(node, currentName),
+      );
+
+      return {
+        ...state,
+        view: {
+          ...state.view,
+          folds,
+        },
+      };
+    }
+
+    case 'unfold': {
+      const cursor = state.view.cursor;
+      const currentName = cursor[cursor.length - 1];
+
+      if (currentName === undefined) {
+        return state;
+      }
+
+      const parentPath = cursor.slice(0, -1);
+      const parentEntry = entryAtCursor(state.view.buffer, parentPath);
+
+      const entries =
+        parentPath.length === 0
+          ? state.view.buffer.entries
+          : parentEntry?.kind === 'directory'
+            ? parentEntry.entries
+            : undefined;
+
+      if (entries === undefined) {
+        return state;
+      }
+
+      const folds = updateFoldNodeAtPath(state.view.folds, parentPath, (node) =>
+        unfoldFoldSequence(node, entries, currentName),
+      );
+
+      return {
+        ...state,
+        view: {
+          ...state.view,
+          folds,
         },
       };
     }
