@@ -1,33 +1,35 @@
-import type { UnixEntry, UnixEntryName } from 'directory-app';
-
 import type {
-  DirectoryBuffer,
+  DisplayRow,
   EntryPath,
   FoldNode,
-  DisplayRow,
+  UnixEntry,
+  UnixEntryName,
 } from 'directory-app';
 
-function visibleRowsAtPath(
+import { hasFold } from './fold-helpers.js';
+
+export function getDisplayRows(
   entries: UnixEntry[],
-  path: EntryPath,
   foldNode: FoldNode | undefined,
+  path: EntryPath,
   indent: number,
 ): DisplayRow[] {
   const rows: DisplayRow[] = [];
-  let index = 0;
+  let entryIndex = 0;
 
-  while (index < entries.length) {
-    const entry = entries[index];
+  while (entryIndex < entries.length) {
+    const entry = entries[entryIndex];
 
-    if (foldNode !== undefined && foldNode.folds.includes(entry.name)) {
+    if (foldNode !== undefined && hasFold(foldNode, entry.name)) {
       const entryNames: UnixEntryName[] = [];
+      let nextIndex = entryIndex;
 
       while (
-        index < entries.length &&
-        foldNode.folds.includes(entries[index].name)
+        nextIndex < entries.length &&
+        hasFold(foldNode, entries[nextIndex].name)
       ) {
-        entryNames.push(entries[index].name);
-        index += 1;
+        entryNames.push(entries[nextIndex].name);
+        nextIndex += 1;
       }
 
       rows.push({
@@ -37,6 +39,7 @@ function visibleRowsAtPath(
         indent,
       });
 
+      entryIndex = nextIndex;
       continue;
     }
 
@@ -51,24 +54,17 @@ function visibleRowsAtPath(
 
     if (entry.kind === 'directory' && entry.entries !== undefined) {
       rows.push(
-        ...visibleRowsAtPath(
+        ...getDisplayRows(
           entry.entries,
-          entryPath,
           foldNode?.children[entry.name],
+          entryPath,
           indent + 1,
         ),
       );
     }
 
-    index += 1;
+    entryIndex += 1;
   }
 
   return rows;
-}
-
-export function visibleRows(
-  buffer: DirectoryBuffer,
-  folds: FoldNode,
-): DisplayRow[] {
-  return visibleRowsAtPath(buffer.entries, [], folds, 0);
 }

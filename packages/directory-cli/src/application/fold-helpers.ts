@@ -5,6 +5,10 @@ export function hasFold(node: FoldNode, entryName: UnixEntryName): boolean {
   return node.folds.includes(entryName);
 }
 
+export function entryIsFolded(node: FoldNode | undefined, entry: UnixEntry): boolean {
+  return node !== undefined && hasFold(node, entry.name);
+}
+
 export function updateFoldNodeAtPath(
   node: FoldNode,
   path: UnixEntryName[],

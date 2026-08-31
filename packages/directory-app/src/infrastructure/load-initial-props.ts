@@ -13,7 +13,7 @@ export async function loadInitialProps(): Promise<AppProps> {
     firstEntry === undefined ? [] : [firstEntry.name];
 
   return {
-    rootAddress,
+    cwdAddress: rootAddress,
     initialView: {
       buffer: {
         entries: lazyEntries,

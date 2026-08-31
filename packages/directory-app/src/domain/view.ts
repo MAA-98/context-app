@@ -11,7 +11,7 @@ export type FoldNode = {
   folds: UnixEntryName[];
 };
 
-export type VisibleRow =
+export type DisplayRow =
   | {
       kind: 'entry';
       path: EntryPath;

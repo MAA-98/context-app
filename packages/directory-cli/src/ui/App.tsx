@@ -8,8 +8,9 @@ import type { AppProps } from 'directory-app';
 import { reducer } from '../application/reducer.js';
 import { inputToInputResult, PendingInput } from '../infrastructure/input.js';
 import DirEntries from './components/DirEntries.js';
+import { getDisplayRows } from '../application/get-display-rows.js';
 
-export function App({ rootAddress, initialView }: AppProps) {
+export function App({ cwdAddress, initialView }: AppProps) {
   const [view, dispatch] = useReducer(reducer, initialView);
   const [exitStatus, setExitStatus] = useState<string | undefined>();
   const pendingInput = useRef<PendingInput | undefined>(undefined);
@@ -34,7 +35,7 @@ export function App({ rootAddress, initialView }: AppProps) {
     const action = result;
 
     if (action.kind === 'expandDir') {
-      const address = join(rootAddress, ...action.path);
+      const address = join(cwdAddress, ...action.path);
 
       void getDirLazyEntries(address)
         .then((entries) => {
@@ -77,17 +78,16 @@ export function App({ rootAddress, initialView }: AppProps) {
   }
 
   // --- JSX ---
+  const displayRows = getDisplayRows(buffer.entries, folds, [], 0);
+  
   return (
     <Box flexDirection="column">
       {buffer.entries.length === 0 ? (
         <Text dimColor>Directory is empty.</Text>
       ) : (
         <DirEntries
-          entries={buffer.entries}
-          foldNode={folds}
+          rows={displayRows}
           cursor={cursor}
-          indent={0}
-          path={[]}
         />
       )}
     </Box>

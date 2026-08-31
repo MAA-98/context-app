@@ -1,4 +1,4 @@
-import { Cursor, DirectoryBuffer, EntryPath, VisibleRow } from 'directory-app';
+import { Cursor, DirectoryBuffer, EntryPath, DisplayRow } from 'directory-app';
 import { entryAtPath, namesEqual, pathsEqual } from './path-helpers.js';
 import { UnixEntry } from 'directory-app';
 
@@ -8,7 +8,7 @@ export function pathInCursor(cursor: Cursor): EntryPath {
 
 export function cursorMatchesRow(
   cursor: Cursor | undefined,
-  row: VisibleRow,
+  row: DisplayRow,
 ): boolean {
   if (cursor === undefined) {
     return false;
@@ -32,7 +32,7 @@ export function cursorMatchesRow(
   return false;
 }
 
-export function cursorForRow(row: VisibleRow): Cursor {
+export function cursorForRow(row: DisplayRow): Cursor {
   if (row.kind === 'entry') {
     return {
       kind: 'entry',
