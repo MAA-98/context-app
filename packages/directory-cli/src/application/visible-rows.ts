@@ -5,7 +5,7 @@ import type {
   EntryPath,
   FoldNode,
   VisibleRow,
-} from '../domain/view.js';
+} from 'directory-app';
 
 function visibleRowsAtPath(
   entries: UnixEntry[],

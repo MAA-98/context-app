@@ -1,8 +1,16 @@
-import type { UnixEntry, UnixEntryName } from 'directory-app';
-import { entryAtCursor } from './entry-at-cursor.js';
-import { DirectoryBuffer, EntryPath, View } from '../domain/view.js';
-import { updateFoldNodeAtPath, setFolds, unfoldFoldSequence, addFold } from './folds.js';
-import { cursorForRow, cursorMatchesRow } from './cursor.js';
+import type {
+  UnixEntry,
+  UnixEntryName,
+  DirectoryBuffer,
+  EntryPath,
+  View,
+} from 'directory-app';
+import { updateFoldNodeAtPath, setFolds, unfoldFoldSequence, addFold } from './fold-helpers.js';
+import {
+  cursorForRow,
+  cursorMatchesRow,
+  entryAtCursor,
+} from './cursor-helpers.js';
 import { visibleRows } from './visible-rows.js';
 
 export type Action =

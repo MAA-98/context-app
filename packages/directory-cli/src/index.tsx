@@ -2,48 +2,19 @@
 import { Command } from 'commander';
 import { render } from 'ink';
 
-import { getCwdAbsPath, getDirLazyEntries } from 'directory-app';
-import type { UnixEntryName } from 'directory-app';
-
-import { createFoldNode } from './application/folds.js';
-
-import { AppProps, App } from './ui/App.js';
+import { App } from './ui/App.js';
+import { loadInitialProps } from 'directory-app';
 
 const program = new Command();
 
-async function loadInitialProps(): Promise<AppProps> {
-  const rootAddress = getCwdAbsPath();
-  const lazyEntries = await getDirLazyEntries(rootAddress);
-
-  const firstEntry = lazyEntries[0];
-  const initialCursorPath: UnixEntryName[] =
-    firstEntry === undefined ? [] : [firstEntry.name];
-  
-  return {
-    rootAddress,
-    initialView: {
-      buffer: {
-        entries: lazyEntries,
-      },
-      cursor: {
-        kind: 'entry',
-        path: initialCursorPath,
-      },
-      folds: createFoldNode(),
-    },
-  };
-}
-
 program
   .name('direx')
-  .description('Manage (Unix-like) directories.')
+  .description('View and manage directories.')
   .version('0.1.0')
   .helpOption('--help')
   .action(async () => {
     const initialProps = await loadInitialProps()
-    
     const app = render(<App {...initialProps} />);
-
     await app.waitUntilExit();
   });
 

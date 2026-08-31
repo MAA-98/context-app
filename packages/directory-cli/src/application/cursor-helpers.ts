@@ -1,7 +1,8 @@
-import { Cursor, EntryPath, VisibleRow } from '../domain/view.js';
-import { UnixEntryName } from 'directory-app';
+import { Cursor, DirectoryBuffer, EntryPath, VisibleRow } from 'directory-app';
+import { entryAtPath, namesEqual, pathsEqual } from './path-helpers.js';
+import { UnixEntry } from 'directory-app';
 
-export function pathAtCursor(cursor: Cursor): EntryPath {
+export function pathInCursor(cursor: Cursor): EntryPath {
   return cursor.kind === 'entry' ? cursor.path : cursor.parentPath;
 }
 
@@ -31,17 +32,6 @@ export function cursorMatchesRow(
   return false;
 }
 
-export function pathsEqual(left: EntryPath, right: EntryPath): boolean {
-  return namesEqual(left, right);
-}
-
-export function namesEqual(left: UnixEntryName[], right: UnixEntryName[]): boolean {
-  return (
-    left.length === right.length &&
-    left.every((name, index) => name === right[index])
-  );
-}
-
 export function cursorForRow(row: VisibleRow): Cursor {
   if (row.kind === 'entry') {
     return {
@@ -55,4 +45,11 @@ export function cursorForRow(row: VisibleRow): Cursor {
     parentPath: row.parentPath,
     entryNames: row.entryNames,
   };
+}
+
+export function entryAtCursor(
+  buffer: DirectoryBuffer,
+  cursor: Cursor,
+): UnixEntry | undefined {
+  return cursor.kind === 'entry' ? entryAtPath(buffer, cursor.path) : undefined;
 }

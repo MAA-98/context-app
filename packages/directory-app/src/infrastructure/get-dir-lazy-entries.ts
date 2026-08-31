@@ -4,9 +4,11 @@ import { join } from 'node:path';
 import {
   UnixEntryNameSchema,
   UnixPathSchema,
-  type UnixAbsolutePath,
-  type UnixEntry,
-} from '../domain/directory.js';
+} from '../domain/unix-entry.js';
+import type {
+  UnixAbsolutePath,
+  UnixEntry,
+} from '../domain/unix-entry.js';
 
 export async function getDirLazyEntries(
   address: UnixAbsolutePath,

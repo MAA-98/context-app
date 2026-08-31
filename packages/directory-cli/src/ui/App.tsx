@@ -3,17 +3,11 @@ import { Box, Text, useApp, useInput } from 'ink';
 import { useEffect, useReducer, useRef, useState } from 'react';
 
 import { getDirLazyEntries } from 'directory-app';
+import type { AppProps } from 'directory-app';
 
 import { reducer } from '../application/reducer.js';
-import type { View } from '../domain/view.js';
 import { inputToInputResult, PendingInput } from '../infrastructure/input.js';
-import DirEntries from './components/dir-entries.js';
-import { UnixAbsolutePath } from 'directory-app/dist/domain/directory.js';
-
-export type AppProps = {
-  rootAddress: UnixAbsolutePath;
-  initialView: View;
-};
+import DirEntries from './components/DirEntries.js';
 
 export function App({ rootAddress, initialView }: AppProps) {
   const [view, dispatch] = useReducer(reducer, initialView);

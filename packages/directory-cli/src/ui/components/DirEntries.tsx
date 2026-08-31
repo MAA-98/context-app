@@ -1,11 +1,10 @@
 import { Box, Text } from 'ink';
 
-import { UnixEntry, UnixEntryName } from 'directory-app';
+import type { Cursor, EntryPath, FoldNode, UnixEntry, UnixEntryName } from 'directory-app';
 
-import { UnixEntry as UnixEntryComponent } from './unix-entry.js';
-import { Cursor, EntryPath, FoldNode } from '../../domain/view.js';
-import { hasFold } from '../../application/folds.js';
-import { namesEqual, pathsEqual } from '../../application/cursor.js';
+import { UnixEntry as UnixEntryComponent } from './UnixEntry.js';
+import { hasFold } from '../../application/fold-helpers.js';
+import { namesEqual, pathsEqual } from '../../application/path-helpers.js';
 
 // Display column of entries in directory, indented, and with optional
 // cursor in a position.
@@ -56,7 +55,7 @@ function DirEntries({
 
           return (
             <Box key={`fold-${entry.name}`} paddingLeft={indent * 2}>
-              <Text inverse={selected} dimColor={!selected}>
+              <Text inverse={true} dimColor={!selected}>
                 ...
               </Text>
             </Box>

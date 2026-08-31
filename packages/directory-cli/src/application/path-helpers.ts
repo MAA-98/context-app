@@ -1,5 +1,23 @@
-import type { UnixEntry } from 'directory-app';
-import type { Cursor, DirectoryBuffer, EntryPath } from '../domain/view.js';
+import type {
+  UnixEntry,
+  UnixEntryName,
+  DirectoryBuffer,
+  EntryPath,
+} from 'directory-app';
+
+export function namesEqual(
+  left: UnixEntryName[],
+  right: UnixEntryName[],
+): boolean {
+  return (
+    left.length === right.length &&
+    left.every((name, index) => name === right[index])
+  );
+}
+
+export function pathsEqual(left: EntryPath, right: EntryPath): boolean {
+  return namesEqual(left, right);
+}
 
 export function entryAtPath(
   buffer: DirectoryBuffer,
@@ -31,11 +49,4 @@ export function entryAtPath(
   }
 
   return undefined;
-}
-
-export function entryAtCursor(
-  buffer: DirectoryBuffer,
-  cursor: Cursor,
-): UnixEntry | undefined {
-  return cursor.kind === 'entry' ? entryAtPath(buffer, cursor.path) : undefined;
 }

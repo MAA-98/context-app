@@ -1,9 +1,9 @@
 import type { Key } from 'ink';
 
 import type { Action } from '../application/reducer.js';
-import { entryAtCursor } from '../application/entry-at-cursor.js';
-import type { View } from '../domain/view.js';
-import { pathAtCursor } from '../application/cursor.js';
+import { entryAtCursor } from '../application/cursor-helpers.js';
+import type { View } from 'directory-app';
+import { pathInCursor } from '../application/cursor-helpers.js';
 
 export type PendingInput = 'z';
 
@@ -62,7 +62,7 @@ export function inputToInputResult(
   }
 
   if (input === 'h' || key.leftArrow) {
-    if (pathAtCursor(view.cursor).length <= 1) {
+    if (pathInCursor(view.cursor).length <= 1) {
       return undefined;
     }
 

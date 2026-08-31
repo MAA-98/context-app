@@ -1,4 +1,4 @@
-import type { UnixEntry, UnixEntryName } from 'directory-app';
+import type { UnixEntry, UnixEntryName } from './unix-entry.js';
 
 export type DirectoryBuffer = {
   entries: UnixEntry[];

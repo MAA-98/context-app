@@ -1,13 +1,5 @@
-import type { UnixEntry, UnixEntryName } from 'directory-app';
-
-import type { FoldNode } from '../domain/view.js';
-
-export function createFoldNode(): FoldNode {
-  return {
-    children: Object.create(null) as Record<string, FoldNode>,
-    folds: [],
-  };
-}
+import type { UnixEntry, UnixEntryName, FoldNode } from 'directory-app';
+import { createEmptyFoldNode } from 'directory-app';
 
 export function hasFold(node: FoldNode, entryName: UnixEntryName): boolean {
   return node.folds.includes(entryName);
@@ -26,7 +18,7 @@ export function updateFoldNodeAtPath(
   }
 
   // Create childNode to create path in tree to the needed node
-  const childNode = node.children[currentName] ?? createFoldNode();
+  const childNode = node.children[currentName] ?? createEmptyFoldNode();
 
   return {
     ...node,
