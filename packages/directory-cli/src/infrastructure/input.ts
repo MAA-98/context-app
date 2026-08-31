@@ -1,9 +1,7 @@
 import type { Key } from 'ink';
 
 import type { Action } from '../application/reducer.js';
-import { entryAtCursor } from '../application/cursor-helpers.js';
 import type { View } from 'directory-app';
-import { pathInCursor } from '../application/cursor-helpers.js';
 
 export type PendingInput = 'z';
 
@@ -46,23 +44,20 @@ export function inputToInputResult(
 
   // Not prefixed inputs
   if (input === 'l' || key.rightArrow) {
-    const selectedEntry = entryAtCursor(view.buffer, view.cursor);
-
-    if (
-      view.cursor.kind === 'entry' &&
-      selectedEntry?.kind === 'directory' &&
-      selectedEntry.entries === undefined
-    ) {
-      return {
-        kind: 'expandDir',
-        path: view.cursor.path,
-      };
+    if (view.cursor.kind !== 'entry') {
+      return undefined;
     }
-    return undefined;
-  }
+    
+    const path = [...view.cursor.parentPath, view.cursor.entry.name];
 
+    return {
+      kind: 'expandDir',
+      path,
+    };
+  }
+  
   if (input === 'h' || key.leftArrow) {
-    if (pathInCursor(view.cursor).length <= 1) {
+    if (view.cursor.parentPath.length === 0) {
       return undefined;
     }
 

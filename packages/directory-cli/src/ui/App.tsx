@@ -2,20 +2,24 @@ import { join } from 'node:path';
 import { Box, Text, useApp, useInput } from 'ink';
 import { useEffect, useReducer, useRef, useState } from 'react';
 
-import { getDirLazyEntries } from 'directory-app';
-import type { AppProps } from 'directory-app';
+import { getDirLazyEntries, UnixAbsolutePath, View } from 'directory-app';
 
 import { reducer } from '../application/reducer.js';
 import { inputToInputResult, PendingInput } from '../infrastructure/input.js';
 import DirEntries from './components/DirEntries.js';
-import { getDisplayRows } from '../application/get-display-rows.js';
+import { createDisplayRows } from '../application/display-rows.js';
+
+export type AppProps = {
+  cwdAddress: UnixAbsolutePath;
+  initialView: View;
+};
 
 export function App({ cwdAddress, initialView }: AppProps) {
   const [view, dispatch] = useReducer(reducer, initialView);
   const [exitStatus, setExitStatus] = useState<string | undefined>();
   const pendingInput = useRef<PendingInput | undefined>(undefined);
 
-  const { buffer, cursor, folds } = view;
+  const { buffer, folds, cursor } = view;
 
   // --- Input ---
   useInput((input, key) => {
@@ -78,11 +82,11 @@ export function App({ cwdAddress, initialView }: AppProps) {
   }
 
   // --- JSX ---
-  const displayRows = getDisplayRows(buffer.entries, folds, [], 0);
+  const displayRows = createDisplayRows(buffer, folds);
   
   return (
     <Box flexDirection="column">
-      {buffer.entries.length === 0 ? (
+      {(buffer.entries.length === 0 || cursor === undefined) ? (
         <Text dimColor>Directory is empty.</Text>
       ) : (
         <DirEntries

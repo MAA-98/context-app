@@ -2,8 +2,8 @@
 import { Command } from 'commander';
 import { render } from 'ink';
 
-import { App } from './ui/App.js';
 import { loadInitialProps } from 'directory-app';
+import { AppShell } from './ui/AppShell.js';
 
 const program = new Command();
 
@@ -14,7 +14,7 @@ program
   .helpOption('--help')
   .action(async () => {
     const initialProps = await loadInitialProps()
-    const app = render(<App {...initialProps} />);
+    const app = render(<AppShell {...initialProps} />);
     await app.waitUntilExit();
   });
 

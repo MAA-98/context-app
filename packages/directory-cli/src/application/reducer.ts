@@ -1,17 +1,13 @@
-import type {
+import {
   UnixEntry,
   UnixEntryName,
   DirectoryBuffer,
   EntryPath,
-  View,
+  View, rowsEqual, namesEqual,
 } from 'directory-app';
 import { updateFoldNodeAtPath, setFolds, unfoldFoldSequence, addFold } from './fold-helpers.js';
-import {
-  cursorForRow,
-  cursorMatchesRow,
-  entryAtCursor,
-} from './cursor-helpers.js';
-import { visibleRows } from './visible-rows.js';
+import { createDisplayRows, displayRowAtPath } from './display-rows.js';
+import { entryAtPath } from './path-helpers.js';
 
 export type Action =
   | {
@@ -128,11 +124,9 @@ export function reducer(view: View, action: Action): View {
     case 'prevEntry': {
       const cursor = view.cursor;
 
-      const rows = visibleRows(view.buffer, view.folds);
+      const rows = createDisplayRows(view.buffer, view.folds);
 
-      const currentIndex = rows.findIndex((row) =>
-        cursorMatchesRow(cursor, row),
-      );
+      const currentIndex = rows.findIndex((row) => rowsEqual(cursor, row));
 
       if (currentIndex === -1) {
         return view;
@@ -149,7 +143,7 @@ export function reducer(view: View, action: Action): View {
 
       return {
         ...view,
-        cursor: cursorForRow(targetRow),
+        cursor: targetRow,
       };
     }
 
@@ -211,33 +205,52 @@ export function reducer(view: View, action: Action): View {
     //   };
     // }
 
+    // 1. Identify the directory represented by parentPath
+    // 2. Check whether the cursor fold contains all its entries
+    // 3. Unload the directory entries
+    // 4. Recalculate the parent display row
+    // 5. Move the cursor to that parent row
     case 'outDir': {
       const cursor = view.cursor;
+      const parentPath = cursor.parentPath;
 
-      if (cursor.kind === 'fold') {
-        if (cursor.parentPath.length === 0) {
-          return view;
-        }
-
-        return {
-          ...view,
-          cursor: {
-            kind: 'entry',
-            path: cursor.parentPath,
-          },
-        };
+      if (parentPath.length === 0) {
+        return view;
       }
 
-      if (cursor.path.length <= 1) {
+      const parentEntry = entryAtPath(view.buffer, parentPath);
+
+      const shouldUnloadDirectory =
+        cursor.kind === 'fold' &&
+        parentEntry?.kind === 'directory' &&
+        parentEntry.entries !== undefined &&
+        namesEqual(
+          cursor.entryNames,
+          parentEntry.entries.map((entry) => entry.name),
+        );
+
+      const buffer = shouldUnloadDirectory
+        ? updateEntriesAtPath(view.buffer, parentPath, undefined)
+        : view.buffer;
+
+      const updatedView = {
+        ...view,
+        buffer,
+      };
+
+      const parentDisplayRow = displayRowAtPath(
+        updatedView.buffer,
+        updatedView.folds,
+        parentPath,
+      );
+
+      if (parentDisplayRow === undefined || parentDisplayRow.kind !== 'entry') {
         return view;
       }
 
       return {
-        ...view,
-        cursor: {
-          kind: 'entry',
-          path: cursor.path.slice(0, -1),
-        },
+        ...updatedView,
+        cursor: parentDisplayRow,
       };
     }
 
@@ -251,19 +264,14 @@ export function reducer(view: View, action: Action): View {
         return view;
       }
 
-      const entry = entryAtCursor(view.buffer, cursor);
+      const currentName = cursor.entry.name;
+      const parentPath = cursor.parentPath;
+
+      const entry = entryAtPath(view.buffer, [...parentPath, currentName]);
 
       if (entry === undefined) {
         return view;
       }
-
-      const currentName = cursor.path[cursor.path.length - 1];
-
-      if (currentName === undefined) {
-        return view;
-      }
-
-      const parentPath = cursor.path.slice(0, -1);
 
       const folds = updateFoldNodeAtPath(view.folds, parentPath, (node) =>
         addFold(node, currentName),
@@ -274,21 +282,17 @@ export function reducer(view: View, action: Action): View {
         folds,
       };
 
-      // The entry is no longer visible after folding it. Move the
-      // cursor onto the resulting fold row.
-      const foldedRow = visibleRows(updatedView.buffer, updatedView.folds).find(
-        (row) =>
-          row.kind === 'fold' &&
-          row.parentPath.length === parentPath.length &&
-          row.parentPath.every((name, index) => name === parentPath[index]) &&
-          row.entryNames.includes(currentName),
+      const foldedRow = displayRowAtPath(
+        updatedView.buffer,
+        updatedView.folds,
+        [...parentPath, currentName],
       );
 
       return foldedRow === undefined
         ? updatedView
         : {
             ...updatedView,
-            cursor: cursorForRow(foldedRow),
+            cursor: foldedRow,
           };
     }
 
@@ -310,10 +314,7 @@ export function reducer(view: View, action: Action): View {
       const parentEntry =
         parentPath.length === 0
           ? undefined
-          : entryAtCursor(view.buffer, {
-              kind: 'entry',
-              path: parentPath,
-            });
+          : entryAtPath(view.buffer, parentPath);
 
       const entries =
         parentPath.length === 0
@@ -330,14 +331,23 @@ export function reducer(view: View, action: Action): View {
         unfoldFoldSequence(node, entries, firstEntryName),
       );
 
-      return {
+      const updatedView = {
         ...view,
         folds,
-        cursor: {
-          kind: 'entry',
-          path: [...parentPath, firstEntryName],
-        },
       };
+
+      const unfoldedRow = displayRowAtPath(
+        updatedView.buffer,
+        updatedView.folds,
+        [...parentPath, firstEntryName],
+      );
+
+      return unfoldedRow === undefined
+        ? updatedView
+        : {
+            ...updatedView,
+            cursor: unfoldedRow,
+          };
     }
 
     case 'exit':

@@ -1,23 +1,8 @@
 import type {
   UnixEntry,
-  UnixEntryName,
   DirectoryBuffer,
   EntryPath,
 } from 'directory-app';
-
-export function namesEqual(
-  left: UnixEntryName[],
-  right: UnixEntryName[],
-): boolean {
-  return (
-    left.length === right.length &&
-    left.every((name, index) => name === right[index])
-  );
-}
-
-export function pathsEqual(left: EntryPath, right: EntryPath): boolean {
-  return namesEqual(left, right);
-}
 
 export function entryAtPath(
   buffer: DirectoryBuffer,
