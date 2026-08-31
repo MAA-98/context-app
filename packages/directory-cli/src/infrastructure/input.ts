@@ -52,7 +52,7 @@ export function inputToInputResult(
     
     if (view.cursor.entry.kind === 'directory') {
       return {
-        kind: 'expandDir',
+        kind: 'inDir',
         path,
       };
     }

@@ -3,11 +3,11 @@ import {
   UnixEntryName,
   DirectoryBuffer,
   EntryPath,
-  View, rowsEqual, entryNamesEqual,
+  View, rowsEqual, entryNamesEqual, unixEntryToDisplayEntry,
 } from 'directory-app';
-import { updateFoldNodeAtPath, setFolds, unfoldFoldSequence, addFold } from './fold-helpers.js';
+import { updateFoldNodeAtPath, unfoldFoldSequence, addFold } from './fold-helpers.js';
 import { createDisplayRows, displayRowAtPath } from './display-rows.js';
-import { entryAtPath } from './path-helpers.js';
+import { entryAtPath } from './dir-buffer-helpers.js';
 
 export type Action =
   | {
@@ -17,8 +17,9 @@ export type Action =
       kind: 'prevEntry';
     }
   | {
-      kind: 'expandDir'; // request to loading directory entries
+      kind: 'inDir';
       path: EntryPath;
+      entries?: UnixEntry[];
     }
   | {
       kind: 'printFilepath';
@@ -126,11 +127,10 @@ export function reducer(view: View, action: Action): View {
   switch (action.kind) {
     case 'nextEntry':
     case 'prevEntry': {
-      const cursor = view.cursor;
-
-      const rows = createDisplayRows(view.buffer, view.folds);
-
-      const currentIndex = rows.findIndex((row) => rowsEqual(cursor, row));
+      const displayRows = createDisplayRows(view.buffer, view.folds);
+      const currentIndex = displayRows.findIndex((row) =>
+        rowsEqual(view.cursor, row),
+      );
 
       if (currentIndex === -1) {
         return view;
@@ -139,26 +139,42 @@ export function reducer(view: View, action: Action): View {
       const direction = action.kind === 'nextEntry' ? 1 : -1;
       const targetIndex = currentIndex + direction;
 
-      if (targetIndex < 0 || targetIndex >= rows.length) {
+      if (targetIndex < 0 || targetIndex >= displayRows.length) {
         return view;
       }
 
-      const targetRow = rows[targetIndex];
+      const newCursor = displayRows[targetIndex];
 
       return {
         ...view,
-        cursor: targetRow,
+        cursor: newCursor,
       };
     }
 
-    case 'expandDir':
-      // The async dir load is handled by App.
-      return view;
+    case 'inDir': {
+      const firstEntry = action.entries?.[0];
+
+      if (firstEntry === undefined) {
+        return view;
+      }
+
+      const cursor =
+        {
+          kind: 'entry' as const,
+          parentPath: action.path,
+          entry: unixEntryToDisplayEntry(firstEntry)
+        }
+      
+      return {
+        ...view,
+        cursor,
+      };
+    }
 
     case 'printFilepath':
       // Handled by App
-      return view
-      
+      return view;
+
     case 'directoryLoaded': {
       // Add new entries to path
       const buffer = updateEntriesAtPath(
@@ -167,26 +183,9 @@ export function reducer(view: View, action: Action): View {
         action.entries,
       );
 
-      // Make all entries folded at path
-      const folds = updateFoldNodeAtPath(view.folds, action.path, (node) =>
-        setFolds(node, action.entries),
-      );
-
-      // Create cursor on fold or still at parent
-      const entryNames = action.entries.map((entry) => entry.name);
-      const cursor =
-        entryNames.length === 0
-          ? view.cursor
-          : {
-              kind: 'fold' as const,
-              parentPath: action.path,
-              entryNames,
-            };
-
       return {
+        ...view,
         buffer,
-        folds,
-        cursor,
       };
     }
 

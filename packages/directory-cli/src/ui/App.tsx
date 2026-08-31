@@ -10,6 +10,7 @@ import { inputToInputResult, PendingInput } from '../infrastructure/input.js';
 import DirEntries from './components/DirEntries.js';
 import { createDisplayRows } from '../application/display-rows.js';
 import { PrintMessage } from '../domain/print-message.js';
+import { entryAtPath } from '../application/dir-buffer-helpers.js';
 
 export type AppProps = {
   cwdAddress: UnixAbsolutePath;
@@ -45,26 +46,45 @@ export function App({ cwdAddress, initialView, print, onError }: AppProps) {
     pendingInput.current = undefined;
     
     const action = result;
-    if (action.kind === 'expandDir') {
-      const address = join(cwdAddress, ...action.path);
+    
+    // May need to load entries:
+    if (action.kind === 'inDir') {
+      const currentEntry = entryAtPath(view.buffer, action.path);
 
-      void getDirLazyEntries(address)
-        .then((entries) => {
-          dispatch({
-            kind: 'directoryLoaded',
-            path: action.path,
-            entries,
+      // If the entry at the path is directory with no entries loaded:
+      if (
+        currentEntry?.kind === 'directory' &&
+        currentEntry.entries === undefined
+      ) {
+        const address = join(cwdAddress, ...action.path);
+        void getDirLazyEntries(address)
+          .then((entries) => {
+            dispatch({
+              kind: 'directoryLoaded',
+              path: action.path,
+              entries,
+            });
+            dispatch({
+              kind: 'inDir',
+              path: action.path,
+              entries: entries,
+            });
+          })
+          .catch((error: unknown) => {
+            const appError =
+              error instanceof Error ? error : new Error(String(error));
+
+            onError?.(appError);
+            setExitStatus(`Unable to open directory: ${appError.message}`);
           });
-        })
-        .catch((error: unknown) => {
-          const appError =
-            error instanceof Error ? error : new Error(String(error));
-          
-          onError?.(appError);
-          setExitStatus(`Unable to open directory: ${appError.message}`);
+      } else if (currentEntry?.kind === 'directory') {
+        dispatch({
+          kind: 'inDir',
+          path: action.path,
+          entries: currentEntry.entries,
         });
-
-      return;
+      }
+      return
     }
     
     if (action.kind === 'printFilepath') {
