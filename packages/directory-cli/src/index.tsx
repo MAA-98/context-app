@@ -6,6 +6,7 @@ import { View } from 'directory-app';
 
 import { AppShell } from './ui/AppShell.js';
 import { loadInitialProps } from './infrastructure/load-initial-props.js';
+import { PrintMessage } from './domain/print-message.js';
 
 const program = new Command();
 
@@ -20,16 +21,13 @@ const uiOutput = process.stderr;
 // separate JSON Lines message.
 // Note: if you pipe output you'll need to use FORCE_COLOR=3
 // to keep interactive screen colored.
-const writeView = (view: View) => {
+const print = (message: PrintMessage) => {
   if (process.stdout.isTTY) {
     return;
   }
   
   process.stdout.write(
-    `${JSON.stringify({
-      type: 'view',
-      view,
-    })}\n`,
+    `${JSON.stringify(message)}\n`,
   );
 };
 
@@ -71,7 +69,7 @@ program
       const app = render(
         <AppShell
           {...initialProps}
-          onViewChange={writeView}
+          print={print}
           onError={(error) => {
             appError = error;
           }}

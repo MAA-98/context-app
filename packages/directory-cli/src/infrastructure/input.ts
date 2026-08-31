@@ -49,11 +49,22 @@ export function inputToInputResult(
     }
     
     const path = [...view.cursor.parentPath, view.cursor.entry.name];
+    
+    if (view.cursor.entry.kind === 'directory') {
+      return {
+        kind: 'expandDir',
+        path,
+      };
+    }
 
-    return {
-      kind: 'expandDir',
-      path,
-    };
+    if (view.cursor.entry.kind === 'file') {
+      return {
+        kind: 'printFilepath',
+        path,
+      };
+    }
+
+    return undefined;
   }
   
   if (input === 'h' || key.leftArrow) {

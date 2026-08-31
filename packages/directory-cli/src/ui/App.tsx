@@ -9,42 +9,42 @@ import { reducer } from '../application/reducer.js';
 import { inputToInputResult, PendingInput } from '../infrastructure/input.js';
 import DirEntries from './components/DirEntries.js';
 import { createDisplayRows } from '../application/display-rows.js';
+import { PrintMessage } from '../domain/print-message.js';
 
 export type AppProps = {
   cwdAddress: UnixAbsolutePath;
   initialView: View;
-  onViewChange?: (view: View) => void;
+  print?: (message: PrintMessage) => void;
   onError?: (error: Error) => void;
 };
 
-export function App({ cwdAddress, initialView, onViewChange, onError }: AppProps) {
+export function App({ cwdAddress, initialView, print, onError }: AppProps) {
   const [view, dispatch] = useReducer(reducer, initialView);
   const [exitStatus, setExitStatus] = useState<string | undefined>();
   const pendingInput = useRef<PendingInput | undefined>(undefined);
 
   const { buffer, folds, cursor } = view;
   
+  // Print view on changes
   useEffect(() => {
-    onViewChange?.(view);
-  }, [view, onViewChange]);
+    print?.({ type: 'view', view: view });
+  }, [view, print]);
   
   // --- Input ---
   useInput((input, key) => {
     const result = inputToInputResult(input, key, view, pendingInput.current);
-
+    
+    if (result === undefined) {
+      return;
+    }
+    
     if (result === 'z') {
       pendingInput.current = result;
       return;
     }
-
     pendingInput.current = undefined;
-
-    if (result === undefined) {
-      return;
-    }
-
+    
     const action = result;
-
     if (action.kind === 'expandDir') {
       const address = join(cwdAddress, ...action.path);
 
@@ -66,7 +66,18 @@ export function App({ cwdAddress, initialView, onViewChange, onError }: AppProps
 
       return;
     }
+    
+    if (action.kind === 'printFilepath') {
+      const address = join(cwdAddress, ...action.path);
 
+      print?.({
+        type: 'filepath',
+        path: address,
+      });
+
+      return;
+    }
+    
     if (action.kind === 'exit') {
       setExitStatus(action.exitMessage);
     }

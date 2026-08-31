@@ -11,19 +11,23 @@ import { entryAtPath } from './path-helpers.js';
 
 export type Action =
   | {
+      kind: 'nextEntry';
+    }
+  | {
+      kind: 'prevEntry';
+    }
+  | {
       kind: 'expandDir'; // request to loading directory entries
+      path: EntryPath;
+    }
+  | {
+      kind: 'printFilepath';
       path: EntryPath;
     }
   | {
       kind: 'directoryLoaded'; // response to loading entries
       path: UnixEntryName[];
       entries: UnixEntry[];
-    }
-  | {
-      kind: 'nextEntry';
-    }
-  | {
-      kind: 'prevEntry';
     }
   | {
       kind: 'outDir';
@@ -148,9 +152,13 @@ export function reducer(view: View, action: Action): View {
     }
 
     case 'expandDir':
-      // The asynchronous directory load is handled by App.
+      // The async dir load is handled by App.
       return view;
 
+    case 'printFilepath':
+      // Handled by App
+      return view
+      
     case 'directoryLoaded': {
       // Add new entries to path
       const buffer = updateEntriesAtPath(

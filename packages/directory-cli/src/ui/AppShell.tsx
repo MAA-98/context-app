@@ -3,6 +3,7 @@ import { Text } from 'ink';
 import { UnixAbsolutePath, View } from 'directory-app';
 
 import { App } from './App.js';
+import { PrintMessage } from '../domain/print-message.js';
 
 // Represents state of directory being empty
 export type EmptyView = {
@@ -12,11 +13,11 @@ export type EmptyView = {
 export type ShellAppProps = {
   cwdAddress: UnixAbsolutePath;
   initialView: View | EmptyView;
-  onViewChange?: (view: View) => void;
+  print?: (message: PrintMessage) => void;
   onError?: (error: Error) => void;
 };
 
-export function AppShell({ cwdAddress, initialView, onViewChange, onError }: ShellAppProps) {
+export function AppShell({ cwdAddress, initialView, print, onError }: ShellAppProps) {
   if (initialView.cursor === undefined) {
     return <Text dimColor>Directory is empty.</Text>;
   }
@@ -25,7 +26,7 @@ export function AppShell({ cwdAddress, initialView, onViewChange, onError }: She
     <App
       cwdAddress={cwdAddress}
       initialView={initialView}
-      onViewChange={onViewChange}
+      print={print}
       onError={onError}
     />
   );
