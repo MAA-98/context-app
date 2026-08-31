@@ -13,24 +13,24 @@ export function App({ rootAddress, initialView }: AppProps) {
   const [view, dispatch] = useReducer(reducer, initialView);
   const [exitStatus, setExitStatus] = useState<string | undefined>();
   const pendingInput = useRef<PendingInput | undefined>(undefined);
-  
+
   const { buffer, cursor, folds } = view;
 
   // --- Input ---
   useInput((input, key) => {
     const result = inputToInputResult(input, key, view, pendingInput.current);
-    
+
     if (result === 'z') {
       pendingInput.current = result;
       return;
     }
-    
+
     pendingInput.current = undefined;
-    
+
     if (result === undefined) {
       return;
     }
-    
+
     const action = result;
 
     if (action.kind === 'expandDir') {
@@ -47,21 +47,21 @@ export function App({ rootAddress, initialView }: AppProps) {
         .catch((error: unknown) => {
           const message =
             error instanceof Error ? error.message : String(error);
-          
+
           setExitStatus(`Unable to open directory: ${message}`);
         });
 
       return;
     }
-    
+
     if (action.kind === 'exit') {
-      setExitStatus(action.exitMessage)
+      setExitStatus(action.exitMessage);
     }
 
     dispatch(action);
   });
 
-  // --- Exit ---
+  // --- Exit Logic ---
   const { exit } = useApp();
   useEffect(() => {
     if (exitStatus !== undefined) {
@@ -69,11 +69,14 @@ export function App({ rootAddress, initialView }: AppProps) {
     }
   }, [exitStatus, exit]);
 
-  // --- JSX ---
   if (exitStatus !== undefined) {
-    return <Text>{exitStatus}</Text>;
+    if (exitStatus === '') {
+      return null;
+    }
+    return <Text color={'red'}>{exitStatus}</Text>;
   }
 
+  // --- JSX ---
   return (
     <Box flexDirection="column">
       {buffer.entries.length === 0 ? (
