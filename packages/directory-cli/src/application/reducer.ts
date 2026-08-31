@@ -3,7 +3,7 @@ import {
   UnixEntryName,
   DirectoryBuffer,
   EntryPath,
-  View, rowsEqual, namesEqual,
+  View, rowsEqual, entryNamesEqual,
 } from 'directory-app';
 import { updateFoldNodeAtPath, setFolds, unfoldFoldSequence, addFold } from './fold-helpers.js';
 import { createDisplayRows, displayRowAtPath } from './display-rows.js';
@@ -224,7 +224,7 @@ export function reducer(view: View, action: Action): View {
         cursor.kind === 'fold' &&
         parentEntry?.kind === 'directory' &&
         parentEntry.entries !== undefined &&
-        namesEqual(
+        entryNamesEqual(
           cursor.entryNames,
           parentEntry.entries.map((entry) => entry.name),
         );

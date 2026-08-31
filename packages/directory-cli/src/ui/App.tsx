@@ -2,7 +2,8 @@ import { join } from 'node:path';
 import { Box, Text, useApp, useInput } from 'ink';
 import { useEffect, useReducer, useRef, useState } from 'react';
 
-import { getDirLazyEntries, UnixAbsolutePath, View } from 'directory-app';
+import { getDirLazyEntries } from 'directory-app';
+import type { UnixAbsolutePath, View } from 'directory-app';
 
 import { reducer } from '../application/reducer.js';
 import { inputToInputResult, PendingInput } from '../infrastructure/input.js';
@@ -12,23 +13,27 @@ import { createDisplayRows } from '../application/display-rows.js';
 export type AppProps = {
   cwdAddress: UnixAbsolutePath;
   initialView: View;
+  onViewChange?: (view: View) => void;
   onError?: (error: Error) => void;
 };
 
-export function App({ cwdAddress, initialView, onError }: AppProps) {
+export function App({ cwdAddress, initialView, onViewChange, onError }: AppProps) {
   const [view, dispatch] = useReducer(reducer, initialView);
   const [exitStatus, setExitStatus] = useState<string | undefined>();
   const pendingInput = useRef<PendingInput | undefined>(undefined);
 
   const { buffer, folds, cursor } = view;
-
+  
+  useEffect(() => {
+    onViewChange?.(view);
+  }, [view, onViewChange]);
+  
   // --- Input ---
   useInput((input, key) => {
     const result = inputToInputResult(input, key, view, pendingInput.current);
 
     if (result === 'z') {
-      setExitStatus('testing!')
-      // pendingInput.current = result;
+      pendingInput.current = result;
       return;
     }
 

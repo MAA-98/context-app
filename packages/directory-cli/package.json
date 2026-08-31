@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "dev": "tsx src/index.tsx",
+    "dev": "FORCE_COLOR=3 tsx src/index.tsx",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit"
   },

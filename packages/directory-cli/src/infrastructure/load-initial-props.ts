@@ -1,7 +1,4 @@
-import { getCwdAbsPath } from 'directory-app/dist/infrastructure/get-cwd.js';
-import { getDirLazyEntries } from 'directory-app/dist/infrastructure/get-dir-lazy-entries.js';
-import { createEmptyFoldNode } from 'directory-app/dist/application/fold/create-fold-node.js';
-import { toDisplayEntry } from 'directory-app/dist/domain/view.js';
+import { getCwdAbsPath, getDirLazyEntries, unixEntryToDisplayEntry, createEmptyFoldNode } from 'directory-app';
 import { ShellAppProps } from '../ui/AppShell.js';
 
 export async function loadInitialProps(): Promise<ShellAppProps> {
@@ -34,7 +31,7 @@ export async function loadInitialProps(): Promise<ShellAppProps> {
       cursor: {
         kind: 'entry',
         parentPath: [],
-        entry: toDisplayEntry(firstEntry),
+        entry: unixEntryToDisplayEntry(firstEntry),
       },
       folds: createEmptyFoldNode(),
     },

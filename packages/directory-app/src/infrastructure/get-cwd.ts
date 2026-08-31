@@ -1,5 +1,5 @@
-import { UnixAbsolutePathSchema } from '../domain/unix-entry.js';
-import type { UnixAbsolutePath } from '../domain/unix-entry.js';
+import type { UnixAbsolutePath } from '../domain/unix-path.js';
+import { UnixAbsolutePathSchema } from '../domain/unix-path.js';
 
 export function getCwdAbsPath(): UnixAbsolutePath {
   const currentWorkingDirectory = process.cwd();

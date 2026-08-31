@@ -1,10 +1,10 @@
 import type { Key } from 'ink';
 
-import type { Action } from '../application/reducer.js';
 import type { View } from 'directory-app';
 
-export type PendingInput = 'z';
+import type { Action } from '../application/reducer.js';
 
+export type PendingInput = 'z';
 export type InputResult = Action | PendingInput | undefined;
 
 export function inputToInputResult(

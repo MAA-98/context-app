@@ -5,7 +5,7 @@
     "typecheck": "tsc --noEmit"
   },
   "version": "0.1.0",
-  "description": "Directory application",
+  "description": "Dependency for direx-style apps.",
   "type": "module",
   "main": "dist/index.js",
   "files": [

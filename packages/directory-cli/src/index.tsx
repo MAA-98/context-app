@@ -2,8 +2,10 @@
 import { Command } from 'commander';
 import { render } from 'ink';
 
-import { loadInitialProps } from 'directory-app';
+import { View } from 'directory-app';
+
 import { AppShell } from './ui/AppShell.js';
+import { loadInitialProps } from './infrastructure/load-initial-props.js';
 
 const program = new Command();
 
@@ -11,8 +13,25 @@ const program = new Command();
 // Restore the terminal during normal cleanup and as a
 // last-resort fallback when Node is exiting.
 
-// Write UI to stderr, so stdout can send messages to pipes
+// Write UI to stderr
 const uiOutput = process.stderr;
+
+// Write Views to stdout. The newline makes each update a
+// separate JSON Lines message.
+// Note: if you pipe output you'll need to use FORCE_COLOR=3
+// to keep interactive screen colored.
+const writeView = (view: View) => {
+  if (process.stdout.isTTY) {
+    return;
+  }
+  
+  process.stdout.write(
+    `${JSON.stringify({
+      type: 'view',
+      view,
+    })}\n`,
+  );
+};
 
 const enterAlternateScreen = '\u001b[?1049h\u001b[2J\u001b[H\u001b[?25l';
 const leaveAlternateScreen = '\u001b[?25h\u001b[?1049l';
@@ -52,6 +71,7 @@ program
       const app = render(
         <AppShell
           {...initialProps}
+          onViewChange={writeView}
           onError={(error) => {
             appError = error;
           }}

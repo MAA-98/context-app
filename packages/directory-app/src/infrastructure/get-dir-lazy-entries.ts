@@ -1,14 +1,10 @@
 import { readdir, readlink } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import {
-  UnixEntryNameSchema,
-  UnixPathSchema,
-} from '../domain/unix-entry.js';
-import type {
-  UnixAbsolutePath,
-  UnixEntry,
-} from '../domain/unix-entry.js';
+import type { UnixAbsolutePath } from '../domain/unix-path.js';
+import { UnixPathSchema } from '../domain/unix-path.js';
+import type { UnixEntry } from '../domain/unix-entry.js';
+import { UnixEntryNameSchema } from '../domain/unix-entry.js';
 
 export async function getDirLazyEntries(
   address: UnixAbsolutePath,
