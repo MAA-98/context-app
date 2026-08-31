@@ -12,9 +12,10 @@ import { createDisplayRows } from '../application/display-rows.js';
 export type AppProps = {
   cwdAddress: UnixAbsolutePath;
   initialView: View;
+  onError?: (error: Error) => void;
 };
 
-export function App({ cwdAddress, initialView }: AppProps) {
+export function App({ cwdAddress, initialView, onError }: AppProps) {
   const [view, dispatch] = useReducer(reducer, initialView);
   const [exitStatus, setExitStatus] = useState<string | undefined>();
   const pendingInput = useRef<PendingInput | undefined>(undefined);
@@ -26,7 +27,8 @@ export function App({ cwdAddress, initialView }: AppProps) {
     const result = inputToInputResult(input, key, view, pendingInput.current);
 
     if (result === 'z') {
-      pendingInput.current = result;
+      setExitStatus('testing!')
+      // pendingInput.current = result;
       return;
     }
 
@@ -50,10 +52,11 @@ export function App({ cwdAddress, initialView }: AppProps) {
           });
         })
         .catch((error: unknown) => {
-          const message =
-            error instanceof Error ? error.message : String(error);
-
-          setExitStatus(`Unable to open directory: ${message}`);
+          const appError =
+            error instanceof Error ? error : new Error(String(error));
+          
+          onError?.(appError);
+          setExitStatus(`Unable to open directory: ${appError.message}`);
         });
 
       return;
@@ -69,16 +72,19 @@ export function App({ cwdAddress, initialView }: AppProps) {
   // --- Exit Logic ---
   const { exit } = useApp();
   useEffect(() => {
-    if (exitStatus !== undefined) {
-      exit();
+    if (exitStatus === undefined) {
+      return;
     }
-  }, [exitStatus, exit]);
+
+    if (exitStatus !== '') {
+      onError?.(new Error(exitStatus));
+    }
+    
+    exit();
+  }, [exitStatus, exit, onError]);
 
   if (exitStatus !== undefined) {
-    if (exitStatus === '') {
-      return null;
-    }
-    return <Text color={'red'}>{exitStatus}</Text>;
+    return null
   }
 
   // --- JSX ---

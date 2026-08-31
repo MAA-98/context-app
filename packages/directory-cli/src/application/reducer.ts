@@ -255,7 +255,10 @@ export function reducer(view: View, action: Action): View {
     }
 
     case 'toggleFold':
-      return view;
+      return reducer(
+        view,
+        view.cursor.kind === 'fold' ? { kind: 'unfold' } : { kind: 'fold' },
+      );
 
     case 'fold': {
       const cursor = view.cursor;

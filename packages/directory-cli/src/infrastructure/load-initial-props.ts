@@ -1,10 +1,10 @@
-import type { AppProps } from '../application/app-props.js';
-import { getCwdAbsPath } from './get-cwd.js';
-import { getDirLazyEntries } from './get-dir-lazy-entries.js';
-import { createEmptyFoldNode } from '../application/fold/create-fold-node.js';
-import { toDisplayEntry } from '../domain/view.js';
+import { getCwdAbsPath } from 'directory-app/dist/infrastructure/get-cwd.js';
+import { getDirLazyEntries } from 'directory-app/dist/infrastructure/get-dir-lazy-entries.js';
+import { createEmptyFoldNode } from 'directory-app/dist/application/fold/create-fold-node.js';
+import { toDisplayEntry } from 'directory-app/dist/domain/view.js';
+import { ShellAppProps } from '../ui/AppShell.js';
 
-export async function loadInitialProps(): Promise<AppProps> {
+export async function loadInitialProps(): Promise<ShellAppProps> {
   const cwdAddress = getCwdAbsPath();
   const lazyEntries = await getDirLazyEntries(cwdAddress);
 
