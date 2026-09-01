@@ -20,6 +20,59 @@ Launch `dirvi` from the directory you want to browse:
 dirvi
 ```
 
+### Piping
+
+`dirvi` can be connected to another process through stdout.
+
+When the view changes, `dirvi` sends the current view, including:
+- The directory buffer
+- Folds
+- The current cursor
+
+When the cursor is on a file and `l` or Right is pressed, `dirvi` sends that file's [`EntryPath`](packages/dirvi-lib/src/domain/display-row.ts).
+
+The output messages are type [PrintMessage](packages/dirvi-cli/src/domain/print-message.ts):
+
+```ts
+import { EntryPath, View } from 'dirvi-lib';
+
+export type PrintMessage =
+  | {
+      type: 'view';
+      view: View;
+    }
+  | {
+      type: 'file';
+      path: EntryPath;
+    };
+```
+
+When stdout is connected to a pipe, some terminals and color libraries disable color automatically. Set `FORCE_COLOR=3` to preserve the colored tree output:
+```sh
+FORCE_COLOR=3 dirvi | jq --unbuffered -c '.' > dirvi-output.json
+```
+
+For convenience, you can define an alias:
+
+```sh
+alias dirvi-pipe='FORCE_COLOR=3 dirvi'
+```
+with zshell:
+```
+echo "alias dirvi-pipe='FORCE_COLOR=3 dirvi'" >> ~/.zshrc
+source ~/.zshrc
+```
+
+Then consumer can use it as they please by piping, here:
+
+```sh
+dirvi-pipe | jq --unbuffered -c '.' > dirvi-output.json
+```
+
+`--unbuffered` makes `jq` flush each message immediately, so the `dirvi-output.json` contains a history of the messages sent by `dirvi`.
+
+Use `view` messages to make view-aware actions, `file` messages to process the selected file.
+
 ## Controls
 
 | Key         | Action                                                                   |
@@ -106,59 +159,6 @@ For example:
 With the cursor on `main.ts`, pressing Left moves to `src/`. Pressing it again moves to `project/`.
 
 If the cursor is on an open or closed directory, Left still moves toward its parent without changing its open/close state.
-
-## Piping and Output
-
-`dirvi` can be connected to another process through stdout.
-
-When the view changes, `dirvi` sends the current view, including:
-- The directory buffer
-- Folds
-- The current cursor
-
-When the cursor is on a file and `l` or Right is pressed, `dirvi` sends that file's [`EntryPath`](packages/dirvi-lib/src/domain/display-row.ts).
-
-The output messages are type [PrintMessage](packages/dirvi-cli/src/domain/print-message.ts):
-
-```ts
-import { EntryPath, View } from 'dirvi-lib';
-
-export type PrintMessage =
-  | {
-      type: 'view';
-      view: View;
-    }
-  | {
-      type: 'file';
-      path: EntryPath;
-    };
-```
-
-When stdout is connected to a pipe, some terminals and color libraries disable color automatically. Set `FORCE_COLOR=3` to preserve the colored tree output:
-```sh
-FORCE_COLOR=3 dirvi | jq --unbuffered -c '.' > dirvi-output.json
-```
-
-For convenience, you can define an alias:
-
-```sh
-alias dirvi-pipe='FORCE_COLOR=3 dirvi'
-```
-with zshell:
-```
-echo "alias dirvi-pipe='FORCE_COLOR=3 dirvi'" >> ~/.zshrc
-source ~/.zshrc
-```
-
-Then consumer can use it as they please by piping, here:
-
-```sh
-dirvi-pipe | jq --unbuffered -c '.' > dirvi-output.json
-```
-
-`--unbuffered` makes `jq` flush each message immediately, so the `dirvi-output.json` contains a history of the messages sent by `dirvi`.
-
-Use `view` messages to make view-aware actions, `file` messages to process the selected file.
 
 ## Folding
 
