@@ -38,7 +38,7 @@ Opening and closing affect the materialized tree ([`DirectoryBuffer`](packages/d
 - Closing recursively closes descendant directories as well.
 - Opening a directory does not automatically open its child directories.
 
-WARNING: Folding is a separate mechanism. It controls the visibility of entries while preserving their directory open/closed state.
+> WARNING: Folding is a separate mechanism. It controls the visibility of entries while preserving their directory open/closed state.
 
 ### Opening directories
 
@@ -107,7 +107,7 @@ With the cursor on `main.ts`, pressing Left moves to `src/`. Pressing it again m
 
 If the cursor is on an open or closed directory, Left still moves toward its parent without changing its open/close state.
 
-## Piping and output
+## Piping and Output
 
 `dirvi` can be connected to another process through stdout.
 
@@ -144,6 +144,24 @@ dirvi | jq --unbuffered -c '.' > dirvi-output.json
 `--unbuffered` makes `jq` flush each message immediately, so the `dirvi-output.json` contains the last message produced by dirvi.
 
 Use `view` messages to make view-aware actions, `file` messages to process the selected file.
+
+## Folding
+
+> **Warning:** Folding is experimental and its behavior will change in new builds.
+
+Folding is separate from opening and closing directories. It controls the visibility of entries while preserving their directory open/closed state.
+
+The current experimental folding controls are:
+
+| Key | Action |
+|---|---|
+| `zc` | Close the current fold |
+| `zo` | Open the current fold |
+| `za` | Toggle the current fold |
+
+For example, folding an expanded directory hides its contents without closing its child directories. Unfolding it restores the previous view and preserves the descendants' open/closed state.
+
+Folding is currently experimental and its behavior and controls will change closer to Vim and Neovim's buffer-folding model.
 
 ## Licensing
 
