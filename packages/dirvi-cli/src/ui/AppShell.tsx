@@ -3,7 +3,7 @@ import { Text } from 'ink';
 import { UnixAbsolutePath, View } from 'dirvi-lib';
 
 import { App } from './App.js';
-import { PrintMessage } from '../domain/print-message.js';
+import { EventMessage } from '../domain/event-message.js';
 
 // Represents state of directory being empty
 export type EmptyView = {
@@ -13,7 +13,7 @@ export type EmptyView = {
 export type ShellAppProps = {
   cwdAddress: UnixAbsolutePath;
   initialView: View | EmptyView;
-  print?: (message: PrintMessage) => void;
+  print?: (message: EventMessage) => void;
   onError?: (error: Error) => void;
 };
 

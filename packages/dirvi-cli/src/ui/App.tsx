@@ -2,34 +2,39 @@ import { join } from 'node:path';
 import { Box, Text, useApp, useInput } from 'ink';
 import { useEffect, useReducer, useRef, useState } from 'react';
 
-import { getDirLazyEntries } from 'dirvi-lib';
+import { DisplayRow, getDirLazyEntries } from 'dirvi-lib';
 import type { UnixAbsolutePath, View } from 'dirvi-lib';
 
 import { reducer } from '../application/reducer.js';
 import { inputToInputResult, PendingInput } from '../infrastructure/input.js';
 import DirEntries from './components/DirEntries.js';
 import { createDisplayRows } from '../application/display-rows.js';
-import { PrintMessage } from '../domain/print-message.js';
+import { EventMessage } from '../domain/event-message.js';
 import { entryAtPath } from '../application/dir-buffer-helpers.js';
+import * as path from 'node:path';
 
 export type AppProps = {
   cwdAddress: UnixAbsolutePath;
   initialView: View;
-  print?: (message: PrintMessage) => void;
+  print?: (message: EventMessage) => void;
   onError?: (error: Error) => void;
 };
 
 export function App({ cwdAddress, initialView, print, onError }: AppProps) {
   const [view, dispatch] = useReducer(reducer, initialView);
   const { buffer, folds, cursor } = view;
-
-  const [exitStatus, setExitStatus] = useState<string | undefined>();
+  const displayRows = createDisplayRows(buffer, folds);
 
   const pendingInput = useRef<PendingInput | undefined>(undefined);
+  const [exitStatus, setExitStatus] = useState<string | undefined>();
 
   // Print view on changes
   useEffect(() => {
     print?.({ type: 'view', view: view });
+    print?.({
+      type: 'displayed-files-paths',
+      paths: displayedFilePaths(displayRows),
+    });
   }, [view, print]);
 
   // --- Input ---
@@ -117,8 +122,6 @@ export function App({ cwdAddress, initialView, print, onError }: AppProps) {
   }
 
   // --- JSX ---
-  const displayRows = createDisplayRows(buffer, folds);
-
   return (
     <Box flexDirection="column">
       {buffer.entries.length === 0 || cursor === undefined ? (
@@ -128,4 +131,18 @@ export function App({ cwdAddress, initialView, print, onError }: AppProps) {
       )}
     </Box>
   );
+}
+
+export function displayedFilePaths(rows: readonly DisplayRow[]): string[] {
+  return rows.flatMap((row) => {
+    if (row.kind !== 'entry') {
+      return [];
+    }
+
+    if (row.entry.kind !== 'file') {
+      return [];
+    }
+
+    return [path.posix.join(String(row.parentPath), String(row.entry.name))];
+  });
 }

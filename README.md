@@ -20,26 +20,28 @@ Launch `dirvi` from the directory you want to browse:
 dirvi
 ```
 
-### Piping
+### Piping Event Stream
 
-`dirvi` can be connected to another process through stdout.
+`dirvi` can be connected to another process through stdout, 
+after which it will send an event stream for consumers.
 
-When the view changes, `dirvi` sends the current view, including:
-- The directory buffer
-- Folds
-- The current cursor
+The events:
+- When the view (directory buffer, folds, cursor) changes, the current view is sent.
+- When the cursor is on a file and `l`/`→` is pressed, that file's [`EntryPath`](packages/dirvi-lib/src/domain/display-row.ts).
 
-When the cursor is on a file and `l` or Right is pressed, `dirvi` sends that file's [`EntryPath`](packages/dirvi-lib/src/domain/display-row.ts).
-
-The output messages are type [PrintMessage](packages/dirvi-cli/src/domain/print-message.ts):
+The output messages are type [EventMessage](packages/dirvi-cli/src/domain/event-message.ts):
 
 ```ts
 import { EntryPath, View } from 'dirvi-lib';
 
-export type PrintMessage =
+export type EventMessage =
   | {
       type: 'view';
       view: View;
+    }
+  | {
+      type: 'displayed-files-paths';
+      paths: string[];
     }
   | {
       type: 'file';
@@ -47,7 +49,18 @@ export type PrintMessage =
     };
 ```
 
-When stdout is connected to a pipe, some terminals and color libraries disable color automatically. Set `FORCE_COLOR=3` to preserve the colored tree output:
+The consumer can use it as they please by piping, filtering and processing the events. 
+For example:
+
+```sh
+dirvi | jq --unbuffered -c '.' > dirvi-output.json
+```
+
+`--unbuffered` makes `jq` flush each message immediately, so the `dirvi-output.json` contains a history of the messages sent by `dirvi`.
+
+> Warning: When stdout is connected to a pipe, some terminals and color libraries disable color automatically. 
+
+Set `FORCE_COLOR=3` to preserve the colored tree output:
 ```sh
 FORCE_COLOR=3 dirvi | jq --unbuffered -c '.' > dirvi-output.json
 ```
@@ -62,16 +75,6 @@ with zshell:
 echo "alias dirvi-pipe='FORCE_COLOR=3 dirvi'" >> ~/.zshrc
 source ~/.zshrc
 ```
-
-Then consumer can use it as they please by piping. For example:
-
-```sh
-dirvi-pipe | jq --unbuffered -c '.' > dirvi-output.json
-```
-
-`--unbuffered` makes `jq` flush each message immediately, so the `dirvi-output.json` contains a history of the messages sent by `dirvi`.
-
-Use `view` messages to make view-aware actions, `file` messages to process the selected file.
 
 ## Controls
 
