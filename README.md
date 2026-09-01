@@ -27,6 +27,7 @@ after which it will send an event stream for consumers.
 
 The events:
 - When the view (directory buffer, folds, cursor) changes, the current view is sent.
+- When the view changes, the relative paths of all the displayed files in the tree is sent.
 - When the cursor is on a file and `l`/`→` is pressed, that file's [`EntryPath`](packages/dirvi-lib/src/domain/display-row.ts).
 
 The output messages are type [EventMessage](packages/dirvi-cli/src/domain/event-message.ts):
