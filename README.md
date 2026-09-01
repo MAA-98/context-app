@@ -112,7 +112,6 @@ If the cursor is on an open or closed directory, Left still moves toward its par
 `dirvi` can be connected to another process through stdout.
 
 When the view changes, `dirvi` sends the current view, including:
-
 - The directory buffer
 - Folds
 - The current cursor
@@ -135,13 +134,24 @@ export type PrintMessage =
     };
 ```
 
+When stdout is connected to a pipe, some terminals and color libraries disable color automatically. Set `FORCE_COLOR=3` to preserve the colored tree output:
+```sh
+FORCE_COLOR=3 dirvi | jq --unbuffered -c '.' > dirvi-output.json
+```
+
+For convenience, you can define an alias:
+
+```sh
+alias dirvi-pipe='FORCE_COLOR=3 dirvi'
+```
+
 A consumer can use it as they please by piping, here:
 
 ```sh
-dirvi | jq --unbuffered -c '.' > dirvi-output.json
+dirvi-pipe | jq --unbuffered -c '.' > dirvi-output.json
 ```
 
-`--unbuffered` makes `jq` flush each message immediately, so the `dirvi-output.json` contains the last message produced by dirvi.
+`--unbuffered` makes `jq` flush each message immediately, so the `dirvi-output.json` contains a history of the messages sent by `dirvi`.
 
 Use `view` messages to make view-aware actions, `file` messages to process the selected file.
 

@@ -25,3 +25,6 @@ coverage/
 .vscode/
 *.swp
 *.swo
+
+# Test output
+dirvi-output.json
