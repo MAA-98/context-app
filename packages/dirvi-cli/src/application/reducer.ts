@@ -7,7 +7,11 @@ import {
   rowsEqual,
   entryNamesEqual,
 } from 'dirvi-lib';
-import { updateFoldNodeAtPath, unfoldFoldSequence, addFold } from './fold-helpers.js';
+import {
+  updateFoldNodeAtPath,
+  unfoldFoldSequence,
+  addFold,
+} from './fold-helpers.js';
 import { createDisplayRows, displayRowAtPath } from './display-rows.js';
 import { entryAtPath } from './dir-buffer-helpers.js';
 
@@ -58,14 +62,14 @@ function updateEntries(
   if (currentName === undefined) {
     throw new Error('Cannot update directory entries with an empty path');
   }
-  
+
   let found = false;
 
   const updatedEntries = entries.map((entry) => {
     if (entry.name !== currentName) {
       return entry;
     }
-    
+
     found = true;
 
     if (remainingPath.length === 0) {
@@ -74,20 +78,20 @@ function updateEntries(
           `Cannot load entries for non-directory entry "${entry.name}" of kind "${entry.kind}"`,
         );
       }
-      
+
       if (newEntries === undefined) {
         return {
           kind: 'directory' as const,
           name: entry.name,
         };
       }
-      
+
       return {
         ...entry,
         entries: newEntries,
       };
     }
-    
+
     if (entry.kind !== 'directory') {
       throw new Error(
         `Cannot descend through non-directory entry "${entry.name}"`,
@@ -105,11 +109,11 @@ function updateEntries(
       entries: updateEntries(entry.entries, remainingPath, newEntries),
     };
   });
-  
+
   if (!found) {
     throw new Error(`Directory path does not contain entry "${currentName}"`);
   }
-  
+
   return updatedEntries;
 }
 
@@ -153,11 +157,7 @@ export function reducer(view: View, action: Action): View {
     }
 
     case 'toggleDir': {
-      const buffer = updateEntriesAtPath(
-        view.buffer,
-        action.path,
-        undefined,
-      );
+      const buffer = updateEntriesAtPath(view.buffer, action.path, undefined);
 
       return {
         ...view,

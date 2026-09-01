@@ -48,9 +48,9 @@ export function inputToInputResult(
     if (view.cursor.kind !== 'entry') {
       return undefined;
     }
-    
+
     const path = [...view.cursor.parentPath, view.cursor.entry.name];
-    
+
     if (view.cursor.entry.kind === 'directory') {
       return {
         kind: 'toggleDir',
@@ -67,7 +67,7 @@ export function inputToInputResult(
 
     return undefined;
   }
-  
+
   if (input === 'h' || key.leftArrow) {
     if (view.cursor.parentPath.length === 0) {
       return undefined;

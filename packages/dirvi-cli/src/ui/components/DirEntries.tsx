@@ -12,17 +12,16 @@ function DirEntries({ rows, cursor }: { rows: DisplayRow[]; cursor: Cursor }) {
   const scrollMargin = 3;
   const { rows: terminalRows } = useWindowSize();
   const viewportStartRef = useRef(0);
-  
-  const cursorIndex = rows.findIndex((row) =>
-    rowsEqual(cursor, row),
-  );
+
+  const cursorIndex = rows.findIndex((row) => rowsEqual(cursor, row));
   const viewportHeight = Math.max(1, terminalRows);
   const maximumViewportStart = Math.max(0, rows.length - viewportHeight);
-  
+
   let viewportStart = viewportStartRef.current;
   if (cursorIndex >= 0) {
     const firstVisibleCursorIndex = viewportStart + scrollMargin;
-    const lastVisibleCursorIndex = viewportStart + viewportHeight - 1 - scrollMargin;
+    const lastVisibleCursorIndex =
+      viewportStart + viewportHeight - 1 - scrollMargin;
 
     if (cursorIndex < firstVisibleCursorIndex) {
       // Cursor moved above the visible area.
@@ -34,12 +33,9 @@ function DirEntries({ rows, cursor }: { rows: DisplayRow[]; cursor: Cursor }) {
   }
   viewportStart = Math.max(0, Math.min(viewportStart, maximumViewportStart));
   viewportStartRef.current = viewportStart;
-  
-  const visibleRows = rows.slice(
-    viewportStart,
-    viewportStart + viewportHeight,
-  );
-  
+
+  const visibleRows = rows.slice(viewportStart, viewportStart + viewportHeight);
+
   return (
     <>
       {visibleRows.map((row) => {

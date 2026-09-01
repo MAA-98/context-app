@@ -23,10 +23,8 @@ const print = (message: PrintMessage) => {
   if (process.stdout.isTTY) {
     return;
   }
-  
-  process.stdout.write(
-    `${JSON.stringify(message)}\n`,
-  );
+
+  process.stdout.write(`${JSON.stringify(message)}\n`);
 };
 
 const enterAlternateScreen = '\u001b[?1049h\u001b[2J\u001b[H\u001b[?25l';
@@ -93,7 +91,7 @@ try {
   await program.parseAsync(process.argv);
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
-  
+
   process.stderr.write(`direx: ${message}\n`);
   process.exitCode = 1;
 }

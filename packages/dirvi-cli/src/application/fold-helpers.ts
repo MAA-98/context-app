@@ -5,7 +5,10 @@ export function hasFold(node: FoldNode, entryName: UnixEntryName): boolean {
   return node.folds.includes(entryName);
 }
 
-export function entryIsFolded(node: FoldNode | undefined, entry: UnixEntry): boolean {
+export function entryIsFolded(
+  node: FoldNode | undefined,
+  entry: UnixEntry,
+): boolean {
   return node !== undefined && hasFold(node, entry.name);
 }
 
@@ -34,10 +37,7 @@ export function updateFoldNodeAtPath(
 }
 
 // Replaces all folds at a node
-export function setFolds(
-  node: FoldNode,
-  entries: UnixEntry[],
-): FoldNode {
+export function setFolds(node: FoldNode, entries: UnixEntry[]): FoldNode {
   const entryNames = entries.map((entry) => entry.name);
 
   return {

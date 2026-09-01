@@ -1,8 +1,4 @@
-import type {
-  UnixEntry,
-  DirectoryBuffer,
-  EntryPath,
-} from 'dirvi-lib';
+import type { UnixEntry, DirectoryBuffer, EntryPath } from 'dirvi-lib';
 
 export function entryAtPath(
   buffer: DirectoryBuffer,

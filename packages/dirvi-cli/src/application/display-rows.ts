@@ -2,7 +2,8 @@ import {
   DirectoryBuffer,
   DisplayRow,
   EntryPath,
-  FoldNode, pathsEqual,
+  FoldNode,
+  pathsEqual,
   UnixEntry,
   UnixEntryName,
 } from 'dirvi-lib';

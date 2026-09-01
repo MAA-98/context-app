@@ -10,7 +10,8 @@
     "typecheck": "pnpm -r typecheck",
     "clean": "rm -rf dist packages/*/dist",
     "dev": "pnpm --filter @mak-98/dirvi-cli dev",
-    "start": "pnpm --filter @mak-98/dirvi-cli start"
+    "start": "pnpm --filter @mak-98/dirvi-cli start",
+    "format": "prettier . --write"
   },
   "repository": {
     "type": "git",

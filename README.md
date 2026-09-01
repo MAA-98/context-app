@@ -22,11 +22,11 @@ dirvi
 
 ## Controls
 
-| Key | Action |
-|---|---|
-| `j` / Down | Move to the next visible entry |
-| `k` / Up | Move to the previous visible entry |
-| `h` / Left | Move to the parent directory |
+| Key         | Action                                                                   |
+| ----------- | ------------------------------------------------------------------------ |
+| `j` / Down  | Move to the next visible entry                                           |
+| `k` / Up    | Move to the previous visible entry                                       |
+| `h` / Left  | Move to the parent directory                                             |
 | `l` / Right | Open or close a directory; send a file path when the cursor is on a file |
 
 ## Open/Close Directory
@@ -146,5 +146,6 @@ dirvi | jq --unbuffered -c '.' > dirvi-output.json
 Use `view` messages to make view-aware actions, `file` messages to process the selected file.
 
 ## Licensing
+
 - The terminal application (`packages/dirvi-cli`) is licensed under the GPLv3.
 - The internal library (`packages/dirvi-lib`) is licensed under the LGPLv3.

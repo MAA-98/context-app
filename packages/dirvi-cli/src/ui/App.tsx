@@ -22,32 +22,32 @@ export type AppProps = {
 export function App({ cwdAddress, initialView, print, onError }: AppProps) {
   const [view, dispatch] = useReducer(reducer, initialView);
   const { buffer, folds, cursor } = view;
-  
+
   const [exitStatus, setExitStatus] = useState<string | undefined>();
-  
+
   const pendingInput = useRef<PendingInput | undefined>(undefined);
-  
+
   // Print view on changes
   useEffect(() => {
     print?.({ type: 'view', view: view });
   }, [view, print]);
-  
+
   // --- Input ---
   useInput((input, key) => {
     const result = inputToInputResult(input, key, view, pendingInput.current);
-    
+
     if (result === undefined) {
       return;
     }
-    
+
     if (result === 'z') {
       pendingInput.current = result;
       return;
     }
     pendingInput.current = undefined;
-    
+
     const action = result;
-    
+
     // May need to load entries:
     if (action.kind === 'toggleDir') {
       const currentEntry = entryAtPath(view.buffer, action.path);
@@ -79,9 +79,9 @@ export function App({ cwdAddress, initialView, print, onError }: AppProps) {
           path: action.path,
         });
       }
-      return
+      return;
     }
-    
+
     if (action.kind === 'printFile') {
       print?.({
         type: 'file',
@@ -90,7 +90,7 @@ export function App({ cwdAddress, initialView, print, onError }: AppProps) {
 
       return;
     }
-    
+
     if (action.kind === 'exit') {
       setExitStatus(action.exitMessage);
     }
@@ -108,26 +108,23 @@ export function App({ cwdAddress, initialView, print, onError }: AppProps) {
     if (exitStatus !== '') {
       onError?.(new Error(exitStatus));
     }
-    
+
     exit();
   }, [exitStatus, exit, onError]);
 
   if (exitStatus !== undefined) {
-    return null
+    return null;
   }
 
   // --- JSX ---
   const displayRows = createDisplayRows(buffer, folds);
-  
+
   return (
     <Box flexDirection="column">
-      {(buffer.entries.length === 0 || cursor === undefined) ? (
+      {buffer.entries.length === 0 || cursor === undefined ? (
         <Text dimColor>Directory is empty.</Text>
       ) : (
-        <DirEntries
-          rows={displayRows}
-          cursor={cursor}
-        />
+        <DirEntries rows={displayRows} cursor={cursor} />
       )}
     </Box>
   );

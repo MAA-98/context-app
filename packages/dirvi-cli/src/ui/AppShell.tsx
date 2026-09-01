@@ -17,7 +17,12 @@ export type ShellAppProps = {
   onError?: (error: Error) => void;
 };
 
-export function AppShell({ cwdAddress, initialView, print, onError }: ShellAppProps) {
+export function AppShell({
+  cwdAddress,
+  initialView,
+  print,
+  onError,
+}: ShellAppProps) {
   if (initialView.cursor === undefined) {
     return <Text dimColor>Directory is empty.</Text>;
   }
