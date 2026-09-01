@@ -4,6 +4,22 @@ A terminal UI for browsing directories as an expandable tree.
 
 `dirvi` does not change the tree root while navigating. Directories are opened and closed in place, and the cursor moves through the currently visible entries.
 
+## Installation
+
+Install `dirvi` globally with npm:
+
+```sh
+npm install --global @mak-98/dirvi-cli
+```
+
+## Usage
+
+Launch `dirvi` from the directory you want to browse:
+
+```sh
+dirvi
+```
+
 ## Controls
 
 | Key | Action |
