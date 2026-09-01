@@ -135,14 +135,12 @@ export function App({ cwdAddress, initialView, print, onError }: AppProps) {
 
 export function displayedFilePaths(rows: readonly DisplayRow[]): string[] {
   return rows.flatMap((row) => {
-    if (row.kind !== 'entry') {
+    if ((row.kind !== 'entry') || (row.entry.kind !== 'file')) {
       return [];
     }
-
-    if (row.entry.kind !== 'file') {
-      return [];
-    }
-
-    return [path.posix.join(String(row.parentPath), String(row.entry.name))];
+    
+    return [
+      path.posix.join(...row.parentPath.map(String), String(row.entry.name)),
+    ];
   });
 }
