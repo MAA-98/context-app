@@ -5,7 +5,7 @@ import {
   FoldNode, pathsEqual,
   UnixEntry,
   UnixEntryName,
-} from 'directory-app';
+} from 'dirvi-lib';
 
 import { hasFold } from './fold-helpers.js';
 

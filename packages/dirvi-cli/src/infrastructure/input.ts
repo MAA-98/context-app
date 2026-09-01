@@ -1,6 +1,6 @@
 import type { Key } from 'ink';
 
-import type { View } from 'directory-app';
+import type { View } from 'dirvi-lib';
 
 import type { Action } from '../application/reducer.js';
 

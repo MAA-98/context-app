@@ -1,5 +1,5 @@
-import type { UnixEntry, UnixEntryName, FoldNode } from 'directory-app';
-import { createEmptyFoldNode } from 'directory-app';
+import type { UnixEntry, UnixEntryName, FoldNode } from 'dirvi-lib';
+import { createEmptyFoldNode } from 'dirvi-lib';
 
 export function hasFold(node: FoldNode, entryName: UnixEntryName): boolean {
   return node.folds.includes(entryName);

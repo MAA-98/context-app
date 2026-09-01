@@ -1,10 +1,10 @@
-# direx
+# dirvi
 
 A terminal UI for browsing directories as an expandable tree.
 
-`direx` does not change the tree root while navigating. Directories are opened and closed in place, and the cursor moves through the currently visible entries.
+`dirvi` does not change the tree root while navigating. Directories are opened and closed in place, and the cursor moves through the currently visible entries.
 
-### Controls
+## Controls
 
 | Key | Action |
 |---|---|
@@ -15,7 +15,7 @@ A terminal UI for browsing directories as an expandable tree.
 
 ## Open/Close Directory
 
-Opening and closing affect the materialized tree ([`DirectoryBuffer`](./packages/directory-app/src/domain/view.ts)) in the TUI:
+Opening and closing affect the materialized tree ([`DirectoryBuffer`](packages/dirvi-lib/src/domain/view.ts)) in the TUI:
 
 - Opening a directory creates its child entries in the buffer.
 - Closing a directory removes its descendants from the buffer.
@@ -93,20 +93,20 @@ If the cursor is on an open or closed directory, Left still moves toward its par
 
 ## Piping and output
 
-`direx` can be connected to another process through stdout.
+`dirvi` can be connected to another process through stdout.
 
-When the view changes, `direx` sends the current view, including:
+When the view changes, `dirvi` sends the current view, including:
 
 - The directory buffer
 - Folds
 - The current cursor
 
-When the cursor is on a file and `l` or Right is pressed, `direx` sends that file's [`EntryPath`](./packages/directory-app/src/domain/display-row.ts).
+When the cursor is on a file and `l` or Right is pressed, `dirvi` sends that file's [`EntryPath`](packages/dirvi-lib/src/domain/display-row.ts).
 
-The output messages are type [PrintMessage](./packages/directory-cli/src/domain/print-message.ts):
+The output messages are type [PrintMessage](packages/dirvi-cli/src/domain/print-message.ts):
 
 ```ts
-import { EntryPath, View } from 'directory-app';
+import { EntryPath, View } from 'dirvi-lib';
 
 export type PrintMessage =
   | {
@@ -122,9 +122,13 @@ export type PrintMessage =
 A consumer can use it as they please by piping, here:
 
 ```sh
-direx | jq --unbuffered -c '.' > direx-output.json
+dirvi | jq --unbuffered -c '.' > dirvi-output.json
 ```
 
-`--unbuffered` makes `jq` flush each message immediately, so the `direx-output.json` contains the last message produced by direx.
+`--unbuffered` makes `jq` flush each message immediately, so the `dirvi-output.json` contains the last message produced by dirvi.
 
 Use `view` messages to make view-aware actions, `file` messages to process the selected file.
+
+## Licensing
+- The terminal application (`packages/dirvi-cli`) is licensed under the GPLv3.
+- The internal library (`packages/dirvi-lib`) is licensed under the LGPLv3.

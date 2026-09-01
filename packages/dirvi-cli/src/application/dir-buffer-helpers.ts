@@ -2,7 +2,7 @@ import type {
   UnixEntry,
   DirectoryBuffer,
   EntryPath,
-} from 'directory-app';
+} from 'dirvi-lib';
 
 export function entryAtPath(
   buffer: DirectoryBuffer,

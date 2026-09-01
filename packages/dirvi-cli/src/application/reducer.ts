@@ -3,8 +3,10 @@ import {
   UnixEntryName,
   DirectoryBuffer,
   EntryPath,
-  View, rowsEqual, entryNamesEqual, unixEntryToDisplayEntry,
-} from 'directory-app';
+  View,
+  rowsEqual,
+  entryNamesEqual,
+} from 'dirvi-lib';
 import { updateFoldNodeAtPath, unfoldFoldSequence, addFold } from './fold-helpers.js';
 import { createDisplayRows, displayRowAtPath } from './display-rows.js';
 import { entryAtPath } from './dir-buffer-helpers.js';

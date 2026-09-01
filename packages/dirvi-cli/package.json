@@ -1,10 +1,11 @@
 {
-  "name": "directory-cli",
+  "name": "dirvi-cli",
   "version": "0.1.0",
+  "description": "A Vim-inspired TUI for browsing directories.",
   "type": "module",
-  "private": true,
+  "license": "GPL-3.0-or-later",
   "bin": {
-    "directory": "./dist/index.js"
+    "dirvi": "./dist/index.js"
   },
   "main": "./dist/index.js",
   "files": [
@@ -18,7 +19,7 @@
   },
   "dependencies": {
     "commander": "^13.0.0",
-    "directory-app": "workspace:*",
+    "dirvi-lib": "workspace:*",
     "ink": "^7.1.1",
     "react": "^19.0.0"
   },

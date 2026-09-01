@@ -37,20 +37,14 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
-  packages/directory-app:
-    dependencies:
-      zod:
-        specifier: ^4.4.3
-        version: 4.4.3
-
-  packages/directory-cli:
+  packages/dirvi-cli:
     dependencies:
       commander:
         specifier: ^13.0.0
         version: 13.1.0
-      directory-app:
+      dirvi-lib:
         specifier: workspace:*
-        version: link:../directory-app
+        version: link:../dirvi-lib
       ink:
         specifier: ^7.1.1
         version: 7.1.1(@types/react@19.2.17)(react@19.2.7)
@@ -70,6 +64,12 @@ importers:
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
+
+  packages/dirvi-lib:
+    dependencies:
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
 
 packages:
 

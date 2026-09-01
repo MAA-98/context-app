@@ -1,4 +1,9 @@
-import { getCwdAbsPath, getDirLazyEntries, unixEntryToDisplayEntry, createEmptyFoldNode } from 'directory-app';
+import {
+  getCwdAbsPath,
+  getDirLazyEntries,
+  unixEntryToDisplayEntry,
+  createEmptyFoldNode,
+} from 'dirvi-lib';
 import { ShellAppProps } from '../ui/AppShell.js';
 
 export async function loadInitialProps(): Promise<ShellAppProps> {

@@ -2,8 +2,8 @@ import { join } from 'node:path';
 import { Box, Text, useApp, useInput } from 'ink';
 import { useEffect, useReducer, useRef, useState } from 'react';
 
-import { getDirLazyEntries } from 'directory-app';
-import type { UnixAbsolutePath, View } from 'directory-app';
+import { getDirLazyEntries } from 'dirvi-lib';
+import type { UnixAbsolutePath, View } from 'dirvi-lib';
 
 import { reducer } from '../application/reducer.js';
 import { inputToInputResult, PendingInput } from '../infrastructure/input.js';

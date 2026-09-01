@@ -1,7 +1,7 @@
 import { Box, Text, useWindowSize } from 'ink';
 
-import type { Cursor, DisplayRow } from 'directory-app';
-import { rowsEqual } from 'directory-app';
+import type { Cursor, DisplayRow } from 'dirvi-lib';
+import { rowsEqual } from 'dirvi-lib';
 
 import { UnixEntry as UnixEntryComponent } from './UnixEntry.js';
 import { useRef } from 'react';

@@ -1,5 +1,5 @@
 import { Text } from 'ink';
-import { UnixEntry } from 'directory-app';
+import { UnixEntry } from 'dirvi-lib';
 
 export function UnixEntry({
   entry,

@@ -1,4 +1,4 @@
-import { EntryPath, View } from 'directory-app';
+import { EntryPath, View } from 'dirvi-lib';
 
 export type PrintMessage =
   | {

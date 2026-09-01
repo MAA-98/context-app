@@ -1,6 +1,6 @@
 import { Text } from 'ink';
 
-import { UnixAbsolutePath, View } from 'directory-app';
+import { UnixAbsolutePath, View } from 'dirvi-lib';
 
 import { App } from './App.js';
 import { PrintMessage } from '../domain/print-message.js';
