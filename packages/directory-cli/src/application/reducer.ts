@@ -26,11 +26,6 @@ export type Action =
       path: EntryPath;
     }
   | {
-      kind: 'directoryLoaded'; // response to loading entries
-      path: UnixEntryName[];
-      entries: UnixEntry[];
-    }
-  | {
       kind: 'outDir';
     }
   | {
@@ -41,6 +36,11 @@ export type Action =
     }
   | {
       kind: 'unfold';
+    }
+  | {
+      kind: 'directoryLoaded'; // response to loading entries
+      path: UnixEntryName[];
+      entries: UnixEntry[];
     }
   | {
       kind: 'exit';
@@ -188,29 +188,6 @@ export function reducer(view: View, action: Action): View {
         buffer,
       };
     }
-
-    // case 'collapseDir': {
-    //   const cursor = state.view.cursor;
-    //
-    //   if (cursor.length <= 1) {
-    //     return state;
-    //   }
-    //
-    //   const retreatedCursor = cursor.slice(0, -1);
-    //
-    //   return {
-    //     ...state,
-    //     view: {
-    //       ...state.view,
-    //       buffer: updateEntriesAtPath(
-    //         state.view.buffer,
-    //         retreatedCursor,
-    //         undefined,
-    //       ),
-    //       cursor: retreatedCursor,
-    //     },
-    //   };
-    // }
 
     // 1. Identify the directory represented by parentPath
     // 2. Check whether the cursor fold contains all its entries

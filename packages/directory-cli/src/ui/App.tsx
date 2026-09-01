@@ -21,10 +21,11 @@ export type AppProps = {
 
 export function App({ cwdAddress, initialView, print, onError }: AppProps) {
   const [view, dispatch] = useReducer(reducer, initialView);
-  const [exitStatus, setExitStatus] = useState<string | undefined>();
-  const pendingInput = useRef<PendingInput | undefined>(undefined);
-
   const { buffer, folds, cursor } = view;
+  
+  const [exitStatus, setExitStatus] = useState<string | undefined>();
+  
+  const pendingInput = useRef<PendingInput | undefined>(undefined);
   
   // Print view on changes
   useEffect(() => {

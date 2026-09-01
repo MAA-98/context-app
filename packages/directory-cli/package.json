@@ -19,7 +19,7 @@
   "dependencies": {
     "commander": "^13.0.0",
     "directory-app": "workspace:*",
-    "ink": "^6.0.0",
+    "ink": "^7.1.1",
     "react": "^19.0.0"
   },
   "devDependencies": {

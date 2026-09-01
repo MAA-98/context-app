@@ -2,8 +2,6 @@
 import { Command } from 'commander';
 import { render } from 'ink';
 
-import { View } from 'directory-app';
-
 import { AppShell } from './ui/AppShell.js';
 import { loadInitialProps } from './infrastructure/load-initial-props.js';
 import { PrintMessage } from './domain/print-message.js';
