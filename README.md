@@ -63,7 +63,7 @@ echo "alias dirvi-pipe='FORCE_COLOR=3 dirvi'" >> ~/.zshrc
 source ~/.zshrc
 ```
 
-Then consumer can use it as they please by piping, here:
+Then consumer can use it as they please by piping. For example:
 
 ```sh
 dirvi-pipe | jq --unbuffered -c '.' > dirvi-output.json
