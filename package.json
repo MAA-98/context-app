@@ -11,7 +11,8 @@
     "clean": "rm -rf dist packages/*/dist",
     "dev": "pnpm --filter @mak-98/dirvi-cli dev",
     "start": "pnpm --filter @mak-98/dirvi-cli start",
-    "format": "prettier . --write"
+    "format": "prettier . --write",
+    "publish": "pnpm --filter dirvi-lib publish --access public && pnpm --filter @mak-98/dirvi-cli publish --access public"
   },
   "repository": {
     "type": "git",
