@@ -1,5 +1,5 @@
 {
-  "name": "dirvi-cli",
+  "name": "@mak-98/dirvi-cli",
   "version": "0.1.0",
   "description": "A Vim-inspired TUI for browsing directories.",
   "type": "module",

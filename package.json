@@ -9,8 +9,8 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "clean": "rm -rf dist packages/*/dist",
-    "dev": "pnpm --filter dirvi-cli dev",
-    "start": "pnpm --filter dirvi-cli start"
+    "dev": "pnpm --filter @mak-98/dirvi-cli dev",
+    "start": "pnpm --filter @mak-98/dirvi-cli start"
   },
   "repository": {
     "type": "git",
