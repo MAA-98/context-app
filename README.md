@@ -144,8 +144,13 @@ For convenience, you can define an alias:
 ```sh
 alias dirvi-pipe='FORCE_COLOR=3 dirvi'
 ```
+with zshell:
+```
+echo "alias dirvi-pipe='FORCE_COLOR=3 dirvi'" >> ~/.zshrc
+source ~/.zshrc
+```
 
-A consumer can use it as they please by piping, here:
+Then consumer can use it as they please by piping, here:
 
 ```sh
 dirvi-pipe | jq --unbuffered -c '.' > dirvi-output.json
