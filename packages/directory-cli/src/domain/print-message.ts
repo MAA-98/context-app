@@ -1,4 +1,4 @@
-import { View } from 'directory-app';
+import { EntryPath, View } from 'directory-app';
 
 export type PrintMessage =
   | {
@@ -6,6 +6,6 @@ export type PrintMessage =
       view: View;
     }
   | {
-      type: 'filepath';
-      path: string;
+      type: 'file';
+      path: EntryPath;
     };

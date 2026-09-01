@@ -44,6 +44,7 @@ export function inputToInputResult(
 
   // Not prefixed inputs
   if (input === 'l' || key.rightArrow) {
+    // To do: `L` does recursive opening directories
     if (view.cursor.kind !== 'entry') {
       return undefined;
     }
@@ -52,14 +53,14 @@ export function inputToInputResult(
     
     if (view.cursor.entry.kind === 'directory') {
       return {
-        kind: 'inDir',
+        kind: 'toggleDir',
         path,
       };
     }
 
     if (view.cursor.entry.kind === 'file') {
       return {
-        kind: 'printFilepath',
+        kind: 'printFile',
         path,
       };
     }

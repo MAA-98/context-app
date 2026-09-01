@@ -17,12 +17,11 @@ export type Action =
       kind: 'prevEntry';
     }
   | {
-      kind: 'inDir';
+      kind: 'toggleDir';
       path: EntryPath;
-      entries?: UnixEntry[];
     }
   | {
-      kind: 'printFilepath';
+      kind: 'printFile';
       path: EntryPath;
     }
   | {
@@ -151,27 +150,20 @@ export function reducer(view: View, action: Action): View {
       };
     }
 
-    case 'inDir': {
-      const firstEntry = action.entries?.[0];
+    case 'toggleDir': {
+      const buffer = updateEntriesAtPath(
+        view.buffer,
+        action.path,
+        undefined,
+      );
 
-      if (firstEntry === undefined) {
-        return view;
-      }
-
-      const cursor =
-        {
-          kind: 'entry' as const,
-          parentPath: action.path,
-          entry: unixEntryToDisplayEntry(firstEntry)
-        }
-      
       return {
         ...view,
-        cursor,
+        buffer,
       };
     }
 
-    case 'printFilepath':
+    case 'printFile':
       // Handled by App
       return view;
 

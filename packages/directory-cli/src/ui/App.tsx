@@ -49,7 +49,7 @@ export function App({ cwdAddress, initialView, print, onError }: AppProps) {
     const action = result;
     
     // May need to load entries:
-    if (action.kind === 'inDir') {
+    if (action.kind === 'toggleDir') {
       const currentEntry = entryAtPath(view.buffer, action.path);
 
       // If the entry at the path is directory with no entries loaded:
@@ -65,11 +65,6 @@ export function App({ cwdAddress, initialView, print, onError }: AppProps) {
               path: action.path,
               entries,
             });
-            dispatch({
-              kind: 'inDir',
-              path: action.path,
-              entries: entries,
-            });
           })
           .catch((error: unknown) => {
             const appError =
@@ -80,20 +75,17 @@ export function App({ cwdAddress, initialView, print, onError }: AppProps) {
           });
       } else if (currentEntry?.kind === 'directory') {
         dispatch({
-          kind: 'inDir',
+          kind: 'toggleDir',
           path: action.path,
-          entries: currentEntry.entries,
         });
       }
       return
     }
     
-    if (action.kind === 'printFilepath') {
-      const address = join(cwdAddress, ...action.path);
-
+    if (action.kind === 'printFile') {
       print?.({
-        type: 'filepath',
-        path: address,
+        type: 'file',
+        path: action.path,
       });
 
       return;
