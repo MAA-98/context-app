@@ -1,8 +1,7 @@
 import {
   DirectoryBuffer,
   DisplayRow,
-  EntryPath,
-  FoldNode,
+  EntryPath, FoldNode,
   pathsEqual,
   UnixEntry,
   UnixEntryName,

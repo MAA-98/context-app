@@ -4,11 +4,11 @@ import {
   DirectoryBuffer,
   EntryPath,
   View,
+  FoldNode,
   rowsEqual,
   entryNamesEqual,
 } from 'dirvi-lib';
 import {
-  updateFoldNodeAtPath,
   unfoldFoldSequence,
   addFold,
 } from './fold-helpers.js';
@@ -254,7 +254,7 @@ export function reducer(view: View, action: Action): View {
         return view;
       }
 
-      const folds = updateFoldNodeAtPath(view.folds, parentPath, (node) =>
+      const folds = FoldNode.updateAtPath(view.folds, parentPath, (node) =>
         addFold(node, currentName),
       );
 
@@ -308,7 +308,7 @@ export function reducer(view: View, action: Action): View {
         return view;
       }
 
-      const folds = updateFoldNodeAtPath(view.folds, parentPath, (node) =>
+      const folds = FoldNode.updateAtPath(view.folds, parentPath, (node) =>
         unfoldFoldSequence(node, entries, firstEntryName),
       );
 

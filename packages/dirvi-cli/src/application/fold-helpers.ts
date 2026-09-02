@@ -1,5 +1,5 @@
-import type { UnixEntry, UnixEntryName, FoldNode } from 'dirvi-lib';
-import { createEmptyFoldNode } from 'dirvi-lib';
+import type { UnixEntry, UnixEntryName } from 'dirvi-lib';
+import { FoldNode } from 'dirvi-lib';
 
 export function hasFold(node: FoldNode, entryName: UnixEntryName): boolean {
   return node.folds.includes(entryName);
@@ -10,30 +10,6 @@ export function entryIsFolded(
   entry: UnixEntry,
 ): boolean {
   return node !== undefined && hasFold(node, entry.name);
-}
-
-export function updateFoldNodeAtPath(
-  node: FoldNode,
-  path: UnixEntryName[],
-  update: (node: FoldNode) => FoldNode,
-): FoldNode {
-  const [currentName, ...remainingPath] = path;
-
-  // Base case
-  if (currentName === undefined) {
-    return update(node);
-  }
-
-  // Create childNode to create path in tree to the needed node
-  const childNode = node.children[currentName] ?? createEmptyFoldNode();
-
-  return {
-    ...node,
-    children: {
-      ...node.children,
-      [currentName]: updateFoldNodeAtPath(childNode, remainingPath, update),
-    },
-  };
 }
 
 // Replaces all folds at a node
