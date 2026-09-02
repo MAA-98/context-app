@@ -26,5 +26,5 @@ coverage/
 *.swp
 *.swo
 
-# Test output
-dirvi-output.json
+# CI piped dirvi output
+context.json
