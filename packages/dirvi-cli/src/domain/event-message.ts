@@ -1,4 +1,4 @@
-import { EntryPath, View } from 'dirvi-lib';
+import { UnixEntryPath, View } from 'dirvi-lib';
 
 export type EventMessage =
   | {
@@ -11,5 +11,5 @@ export type EventMessage =
     }
   | {
       type: 'file';
-      path: EntryPath;
+      path: UnixEntryPath;
     };

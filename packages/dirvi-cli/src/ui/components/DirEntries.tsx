@@ -1,9 +1,9 @@
 import { Box, Text, useWindowSize } from 'ink';
 
-import type { Cursor, DisplayRow } from 'dirvi-lib';
-import { rowsEqual } from 'dirvi-lib';
+import { Cursor } from 'dirvi-lib';
+import { DisplayRow } from 'dirvi-lib';
 
-import { UnixEntry as UnixEntryComponent } from './UnixEntry.js';
+import { UnixEntryComponent as UnixEntryComponent } from './UnixEntryComponent.js';
 import { useRef } from 'react';
 
 // Display column of entries in directory, indented, and optional
@@ -13,7 +13,7 @@ function DirEntries({ rows, cursor }: { rows: DisplayRow[]; cursor: Cursor }) {
   const { rows: terminalRows } = useWindowSize();
   const viewportStartRef = useRef(0);
 
-  const cursorIndex = rows.findIndex((row) => rowsEqual(cursor, row));
+  const cursorIndex = rows.findIndex((row) => Cursor.matchesDisplayRow(cursor, row));
   const viewportHeight = Math.max(1, terminalRows);
   const maximumViewportStart = Math.max(0, rows.length - viewportHeight);
 
@@ -39,7 +39,7 @@ function DirEntries({ rows, cursor }: { rows: DisplayRow[]; cursor: Cursor }) {
   return (
     <>
       {visibleRows.map((row) => {
-        const selected = rowsEqual(cursor, row);
+        const selected = Cursor.matchesDisplayRow(cursor, row);
         const indent = row.parentPath.length;
 
         if (row.kind === 'fold') {

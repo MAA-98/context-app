@@ -1,132 +1,11 @@
 import {
   UnixEntry,
-  UnixEntryName,
-  DirectoryBuffer,
-  EntryPath,
   View,
   FoldNode,
-  rowsEqual,
-  entryNamesEqual,
+  Cursor,
 } from 'dirvi-lib';
-import {
-  unfoldFoldSequence,
-  addFold,
-} from './fold-helpers.js';
 import { createDisplayRows, displayRowAtPath } from './display-rows.js';
-import { entryAtPath } from './dir-buffer-helpers.js';
-
-export type Action =
-  | {
-      kind: 'nextEntry';
-    }
-  | {
-      kind: 'prevEntry';
-    }
-  | {
-      kind: 'toggleDir';
-      path: EntryPath;
-    }
-  | {
-      kind: 'printFile';
-      path: EntryPath;
-    }
-  | {
-      kind: 'outDir';
-    }
-  | {
-      kind: 'toggleFold';
-    }
-  | {
-      kind: 'fold';
-    }
-  | {
-      kind: 'unfold';
-    }
-  | {
-      kind: 'directoryLoaded'; // response to loading entries
-      path: UnixEntryName[];
-      entries: UnixEntry[];
-    }
-  | {
-      kind: 'exit';
-      exitMessage: string;
-    };
-
-function updateEntries(
-  entries: UnixEntry[],
-  currentPath: UnixEntryName[],
-  newEntries: UnixEntry[] | undefined,
-): UnixEntry[] {
-  const [currentName, ...remainingPath] = currentPath;
-
-  if (currentName === undefined) {
-    throw new Error('Cannot update directory entries with an empty path');
-  }
-
-  let found = false;
-
-  const updatedEntries = entries.map((entry) => {
-    if (entry.name !== currentName) {
-      return entry;
-    }
-
-    found = true;
-
-    if (remainingPath.length === 0) {
-      if (entry.kind !== 'directory') {
-        throw new Error(
-          `Cannot load entries for non-directory entry "${entry.name}" of kind "${entry.kind}"`,
-        );
-      }
-
-      if (newEntries === undefined) {
-        return {
-          kind: 'directory' as const,
-          name: entry.name,
-        };
-      }
-
-      return {
-        ...entry,
-        entries: newEntries,
-      };
-    }
-
-    if (entry.kind !== 'directory') {
-      throw new Error(
-        `Cannot descend through non-directory entry "${entry.name}"`,
-      );
-    }
-
-    if (entry.entries === undefined) {
-      throw new Error(
-        `Cannot descend into unexpanded directory "${entry.name}"`,
-      );
-    }
-
-    return {
-      ...entry,
-      entries: updateEntries(entry.entries, remainingPath, newEntries),
-    };
-  });
-
-  if (!found) {
-    throw new Error(`Directory path does not contain entry "${currentName}"`);
-  }
-
-  return updatedEntries;
-}
-
-function updateEntriesAtPath(
-  buffer: DirectoryBuffer,
-  path: UnixEntryName[],
-  newEntries: UnixEntry[] | undefined,
-): DirectoryBuffer {
-  return {
-    ...buffer,
-    entries: updateEntries(buffer.entries, path, newEntries),
-  };
-}
+import { Action } from './action.js';
 
 export function reducer(view: View, action: Action): View {
   switch (action.kind) {
@@ -134,7 +13,7 @@ export function reducer(view: View, action: Action): View {
     case 'prevEntry': {
       const displayRows = createDisplayRows(view.buffer, view.folds);
       const currentIndex = displayRows.findIndex((row) =>
-        rowsEqual(view.cursor, row),
+        Cursor.matchesDisplayRow(view.cursor, row),
       );
 
       if (currentIndex === -1) {
@@ -148,77 +27,39 @@ export function reducer(view: View, action: Action): View {
         return view;
       }
 
-      const newCursor = displayRows[targetIndex];
-
       return {
         ...view,
-        cursor: newCursor,
+        cursor: Cursor.fromDisplayRow(displayRows[targetIndex]),
       };
     }
 
-    case 'toggleDir': {
-      const buffer = updateEntriesAtPath(view.buffer, action.path, undefined);
-
+    case 'updateDir':
       return {
         ...view,
-        buffer,
+        buffer: {
+          ...view.buffer,
+          entries: UnixEntry.setEntriesAtPath(
+            view.buffer.entries,
+            action.path,
+            action.entries,
+          ),
+        },
       };
-    }
 
     case 'printFile':
       // Handled by App
       return view;
 
-    case 'directoryLoaded': {
-      // Add new entries to path
-      const buffer = updateEntriesAtPath(
-        view.buffer,
-        action.path,
-        action.entries,
-      );
-
-      return {
-        ...view,
-        buffer,
-      };
-    }
-
-    // 1. Identify the directory represented by parentPath
-    // 2. Check whether the cursor fold contains all its entries
-    // 3. Unload the directory entries
-    // 4. Recalculate the parent display row
-    // 5. Move the cursor to that parent row
     case 'outDir': {
-      const cursor = view.cursor;
-      const parentPath = cursor.parentPath;
+      const { parentPath } = view.cursor;
 
       if (parentPath.length === 0) {
         return view;
       }
 
-      const parentEntry = entryAtPath(view.buffer, parentPath);
-
-      const shouldUnloadDirectory =
-        cursor.kind === 'fold' &&
-        parentEntry?.kind === 'directory' &&
-        parentEntry.entries !== undefined &&
-        entryNamesEqual(
-          cursor.entryNames,
-          parentEntry.entries.map((entry) => entry.name),
-        );
-
-      const buffer = shouldUnloadDirectory
-        ? updateEntriesAtPath(view.buffer, parentPath, undefined)
-        : view.buffer;
-
-      const updatedView = {
-        ...view,
-        buffer,
-      };
-
       const parentDisplayRow = displayRowAtPath(
-        updatedView.buffer,
-        updatedView.folds,
+        view.buffer,
+        view.folds,
         parentPath,
       );
 
@@ -227,8 +68,8 @@ export function reducer(view: View, action: Action): View {
       }
 
       return {
-        ...updatedView,
-        cursor: parentDisplayRow,
+        ...view,
+        cursor: Cursor.fromDisplayRow(parentDisplayRow),
       };
     }
 
@@ -240,95 +81,92 @@ export function reducer(view: View, action: Action): View {
 
     case 'fold': {
       const cursor = view.cursor;
-
-      if (cursor.kind !== 'entry') {
+      if (cursor.kind === 'fold') {
         return view;
       }
 
-      const currentName = cursor.entry.name;
-      const parentPath = cursor.parentPath;
-
-      const entry = entryAtPath(view.buffer, [...parentPath, currentName]);
-
-      if (entry === undefined) {
+      const entriesAmongCursor = UnixEntry.getEntriesAtPath(
+        view.buffer.entries,
+        cursor.parentPath,
+      );
+      if (entriesAmongCursor === undefined) {
         return view;
       }
 
-      const folds = FoldNode.updateAtPath(view.folds, parentPath, (node) =>
-        addFold(node, currentName),
+      const currentIndex = entriesAmongCursor.findIndex(
+        (entry) => entry.name === cursor.entryName,
+      );
+      if (currentIndex === -1) {
+        return view;
+      }
+
+      const currentEntry = entriesAmongCursor[currentIndex];
+
+      const newFoldRoot = FoldNode.addFoldedEntryAtPath(
+        view.folds,
+        cursor.parentPath,
+        currentEntry,
       );
 
-      const updatedView = {
-        ...view,
-        folds,
-      };
-
-      const foldedRow = displayRowAtPath(
-        updatedView.buffer,
-        updatedView.folds,
-        [...parentPath, currentName],
-      );
-
-      return foldedRow === undefined
-        ? updatedView
-        : {
-            ...updatedView,
-            cursor: foldedRow,
-          };
+      return view;
+      // const foldedEntryNamesAmongCursor = newFoldRoot.folds
+      // const unfoldedEntryNamesAmongCursor = entriesAmongCursor.filter(...)
+      // const newCursorRow = DisplayEntry.fromUnixEntry(
+      //   unfoldedEntryNamesAmongCursor.at ...
+      // )
+      // const newCursor =
     }
 
     case 'unfold': {
-      const cursor = view.cursor;
-
-      if (cursor.kind !== 'fold') {
-        return view;
-      }
-
-      const firstEntryName = cursor.entryNames[0];
-
-      if (firstEntryName === undefined) {
-        return view;
-      }
-
-      const { parentPath } = cursor;
-
-      const parentEntry =
-        parentPath.length === 0
-          ? undefined
-          : entryAtPath(view.buffer, parentPath);
-
-      const entries =
-        parentPath.length === 0
-          ? view.buffer.entries
-          : parentEntry?.kind === 'directory'
-            ? parentEntry.entries
-            : undefined;
-
-      if (entries === undefined) {
-        return view;
-      }
-
-      const folds = FoldNode.updateAtPath(view.folds, parentPath, (node) =>
-        unfoldFoldSequence(node, entries, firstEntryName),
-      );
-
-      const updatedView = {
-        ...view,
-        folds,
-      };
-
-      const unfoldedRow = displayRowAtPath(
-        updatedView.buffer,
-        updatedView.folds,
-        [...parentPath, firstEntryName],
-      );
-
-      return unfoldedRow === undefined
-        ? updatedView
-        : {
-            ...updatedView,
-            cursor: unfoldedRow,
-          };
+      // const cursor = view.cursor;
+      //
+      // if (cursor.kind !== 'fold') {
+      //   return view;
+      // }
+      //
+      // const { parentPath } = cursor;
+      // const foldNode = FoldNode.atPath(view.folds, parentPath);
+      //
+      // if (foldNode === undefined || foldNode.folds.length === 0) {
+      //   return view;
+      // }
+      //
+      // const foldedEntryNames = foldNode.folds;
+      // const entries = DirectoryBuffer.entriesAtPath(view.buffer, parentPath);
+      //
+      // const newFoldRoot = FoldNode.modifyAtPath(
+      //   view.folds,
+      //   parentPath,
+      //   (node) => FoldNode.clearFoldedEntries(node),
+      // );
+      //
+      // if (entries === undefined) {
+      //   return {
+      //     ...view,
+      //     folds: newFoldRoot,
+      //   };
+      // }
+      //
+      // const firstUnfoldedEntry = entries.find((entry) =>
+      //   foldedEntryNames.includes(entry.name),
+      // );
+      //
+      // if (firstUnfoldedEntry === undefined) {
+      //   return {
+      //     ...view,
+      //     folds: newFoldRoot,
+      //   };
+      // }
+      //
+      // return {
+      //   ...view,
+      //   folds: newFoldRoot,
+      //   cursor: {
+      //     kind: 'entry',
+      //     parentPath,
+      //     entry: DisplayEntry.fromUnixEntry(firstUnfoldedEntry),
+      //   },
+      // };
     }
 
     case 'exit':

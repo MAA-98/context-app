@@ -2,15 +2,14 @@ import { join } from 'node:path';
 import { Box, Text, useApp, useInput } from 'ink';
 import { useEffect, useReducer, useRef, useState } from 'react';
 
-import { DisplayRow, getDirLazyEntries } from 'dirvi-lib';
+import { Cursor, DisplayRow, getDirLazyEntries } from 'dirvi-lib';
 import type { UnixAbsolutePath, View } from 'dirvi-lib';
 
 import { reducer } from '../application/reducer.js';
-import { inputToInputResult, PendingInput } from '../infrastructure/input.js';
+import { userInputToInputResult, PendingInput } from '../infrastructure/input.js';
 import DirEntries from './components/DirEntries.js';
 import { createDisplayRows } from '../application/display-rows.js';
 import { EventMessage } from '../domain/event-message.js';
-import { entryAtPath } from '../application/dir-buffer-helpers.js';
 import * as path from 'node:path';
 
 export type AppProps = {
@@ -39,7 +38,7 @@ export function App({ cwdAddress, initialView, print, onError }: AppProps) {
 
   // --- Input ---
   useInput((input, key) => {
-    const result = inputToInputResult(input, key, view, pendingInput.current);
+    const result = userInputToInputResult(input, key, view, pendingInput.current);
 
     if (result === undefined) {
       return;
@@ -53,21 +52,20 @@ export function App({ cwdAddress, initialView, print, onError }: AppProps) {
 
     const action = result;
 
-    // May need to load entries:
-    if (action.kind === 'toggleDir') {
-      const currentEntry = entryAtPath(view.buffer, action.path);
-
+    // Contents of `updateDir` change meaning at this boundary:
+    if (action.kind === 'updateDir') {
       // If the entry at the path is directory with no entries loaded:
-      if (
-        currentEntry?.kind === 'directory' &&
-        currentEntry.entries === undefined
-      ) {
-        const address = join(cwdAddress, ...action.path);
+      if (action.entries === undefined) {
+        const path = Cursor.getPath(view.cursor)
+        if (path === undefined) {
+          return undefined
+        }
+        const address = join(cwdAddress, ...path);
         void getDirLazyEntries(address)
           .then((entries) => {
             dispatch({
-              kind: 'directoryLoaded',
-              path: action.path,
+              kind: 'updateDir',
+              path: path,
               entries,
             });
           })
@@ -78,10 +76,12 @@ export function App({ cwdAddress, initialView, print, onError }: AppProps) {
             onError?.(appError);
             setExitStatus(`Unable to open directory: ${appError.message}`);
           });
-      } else if (currentEntry?.kind === 'directory') {
+      } else {
+        // Otherwise need to wipe the entries:
         dispatch({
-          kind: 'toggleDir',
+          kind: 'updateDir',
           path: action.path,
+          entries: undefined
         });
       }
       return;

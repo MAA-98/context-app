@@ -1,13 +1,12 @@
 import type { Key } from 'ink';
 
-import type { View } from 'dirvi-lib';
-
-import type { Action } from '../application/reducer.js';
+import { Cursor, View } from 'dirvi-lib';
+import { Action } from '../application/action.js';
 
 export type PendingInput = 'z';
 export type InputResult = Action | PendingInput | undefined;
 
-export function inputToInputResult(
+export function userInputToInputResult(
   input: string,
   key: Key,
   view: View,
@@ -44,21 +43,29 @@ export function inputToInputResult(
 
   // Not prefixed inputs
   if (input === 'l' || key.rightArrow) {
-    // To do: `L` does recursive opening directories
-    if (view.cursor.kind !== 'entry') {
+    const currentEntry = View.getEntryAtCursor(view)
+    if (currentEntry === undefined) {
       return undefined;
     }
 
-    const path = [...view.cursor.parentPath, view.cursor.entry.name];
-
-    if (view.cursor.entry.kind === 'directory') {
+    if (currentEntry.kind === 'directory') {
+      const path = Cursor.getPath(view.cursor)
+      if (path === undefined) {
+        return undefined
+      }
+      
       return {
-        kind: 'toggleDir',
+        kind: 'updateDir',
         path,
+        entries: currentEntry.entries,
       };
     }
 
-    if (view.cursor.entry.kind === 'file') {
+    if (currentEntry.kind === 'file') {
+      const path = Cursor.getPath(view.cursor)
+      if (path === undefined) {
+        return undefined
+      }
       return {
         kind: 'printFile',
         path,

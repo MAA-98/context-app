@@ -1,7 +1,7 @@
 import { Text } from 'ink';
 import { UnixEntry } from 'dirvi-lib';
 
-export function UnixEntry({
+export function UnixEntryComponent({
   entry,
   selected,
 }: {

@@ -1,17 +1,14 @@
 import {
   DirectoryBuffer,
   DisplayRow,
-  EntryPath, FoldNode,
-  pathsEqual,
+  UnixEntryPath, FoldNode,
   UnixEntry,
   UnixEntryName,
 } from 'dirvi-lib';
 
-import { hasFold } from './fold-helpers.js';
-
 function displayRowsAtPath(
   entries: UnixEntry[],
-  path: EntryPath,
+  path: UnixEntryPath,
   foldNode: FoldNode | undefined,
 ): DisplayRow[] {
   const rows: DisplayRow[] = [];
@@ -20,10 +17,13 @@ function displayRowsAtPath(
   while (index < entries.length) {
     const entry = entries[index];
 
-    if (foldNode !== undefined && hasFold(foldNode, entry.name)) {
+    if (foldNode !== undefined && FoldNode.getIfEntryFolded(foldNode, entry)) {
       const entryNames: UnixEntryName[] = [];
 
-      while (index < entries.length && hasFold(foldNode, entries[index].name)) {
+      while (
+        index < entries.length &&
+        FoldNode.getIfEntryFolded(foldNode, entries[index])
+      ) {
         entryNames.push(entries[index].name);
         index += 1;
       }
@@ -69,7 +69,7 @@ export function createDisplayRows(
 export function displayRowAtPath(
   buffer: DirectoryBuffer,
   folds: FoldNode,
-  path: EntryPath,
+  path: UnixEntryPath,
 ): DisplayRow | undefined {
   if (path.length === 0) {
     return undefined;
@@ -82,12 +82,12 @@ export function displayRowAtPath(
   return rows.find((row) => {
     if (row.kind === 'entry') {
       return (
-        row.entry.name === entryName && pathsEqual(row.parentPath, parentPath)
+        row.entry.name === entryName && UnixEntryPath.equal(row.parentPath, parentPath)
       );
     }
 
     return (
-      pathsEqual(row.parentPath, parentPath) &&
+      UnixEntryPath.equal(row.parentPath, parentPath) &&
       row.entryNames.includes(entryName)
     );
   });

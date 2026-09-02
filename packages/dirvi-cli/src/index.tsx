@@ -8,7 +8,7 @@ import { EventMessage } from './domain/event-message.js';
 
 const program = new Command();
 
-// ---*--- TERMINAL ALT SCREEN ---*---
+// ---*--- TERMINAL ALTERNATE SCREEN ---*---
 // Restore the terminal during normal cleanup and as a
 // last-resort fallback when Node is exiting.
 
