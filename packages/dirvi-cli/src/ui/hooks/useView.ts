@@ -1,5 +1,5 @@
 import { Cursor, DisplayRow, NavigationNode, State } from 'dirvi-lib';
-import { View } from '../view.js';
+import { View, ViewRow } from '../view.js';
 import { useWindowSize } from 'ink';
 import { useRef } from 'react';
 import { createDisplayRows } from '../../application/display-rows.js';
@@ -11,28 +11,30 @@ export function useView(navigation: NavigationNode, state: State): View {
   const viewportStartRef = useRef(0);
 
   const viewportHeight = Math.max(1, terminalRows);
-  const displayRows = createDisplayRows(state.buffer, state.folds);
+  const rows = View.createRows(navigation, state.cursor);
 
   viewportStartRef.current = viewportStart(
-    displayRows,
-    state,
+    rows,
     viewportHeight,
     viewportStartRef.current,
   );
-
-  return View.create(state, viewportHeight, viewportStartRef.current);
+  
+  return View.create(
+    navigation,
+    state.cursor,
+    viewportHeight,
+    viewportStartRef.current,
+  );
 }
 
 function viewportStart(
-  rows: DisplayRow[],
-  state: State,
+  rows: ViewRow[],
   viewportHeight: number,
   currentViewportStart: number,
 ): number {
   const scrollMargin = 3;
-  const cursorIndex = rows.findIndex((row) =>
-    Cursor.matchesDisplayRow(state.cursor, row),
-  );
+
+  const cursorIndex = rows.findIndex((row) => row.cursor);
 
   const maximumViewportStart = Math.max(0, rows.length - viewportHeight);
 

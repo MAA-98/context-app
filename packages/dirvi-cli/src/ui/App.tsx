@@ -31,11 +31,15 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
   // Print view on changes
   useEffect(() => {
     print?.({ type: 'view', view: state });
-    // print?.({
-    //   type: 'displayed-files-paths',
-    //   paths: displayedFilePaths(displayRows),
-    // });
-  }, [state, print]);
+    
+    const visibleFilesPaths = NavigationNode.visibleFilesPaths(navigation).map(
+      (path) => join(cwdAddress, ...path),
+    );
+    print?.({
+      type: 'displayed-files-paths',
+      paths: visibleFilesPaths,
+    });
+  }, [state, print, navigation, cwdAddress]);
   
   function executeEffect(effect: Effect | undefined): void {
     if (effect === undefined) {

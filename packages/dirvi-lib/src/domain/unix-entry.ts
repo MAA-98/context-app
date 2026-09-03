@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { UnixPath } from './unix-path.js';
+import { NavigationNode } from './navigation-node.js';
 
 // UNIX ENTRY
 export const UnixEntryNameSchema = z
@@ -160,5 +161,16 @@ export type UnixEntryPath = UnixEntryName[];
 export const UnixEntryPath = {
   equal(left: UnixEntryPath, right: UnixEntryPath): boolean {
     return entryNamesEqual(left, right);
+  },
+  
+  isStrictPathPrefix(
+    prefix: UnixEntryPath,
+    path: UnixEntryPath,
+  ): boolean {
+    if (path.length <= prefix.length) {
+      return false;
+    }
+    
+    return prefix.every((name, index) => path[index] === name);
   }
 }

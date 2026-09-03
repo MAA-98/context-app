@@ -1,4 +1,4 @@
-import { Cursor, UnixEntry, UnixEntryName, UnixEntryPath } from 'dirvi-lib';
+import { Cursor, UnixEntry, UnixEntryPath } from 'dirvi-lib';
 
 export type ReducerAction =
   | {
@@ -13,7 +13,8 @@ export type ReducerAction =
   | {
       kind: 'fold';
       parentPath: UnixEntryPath;
-      entryName: UnixEntryName;
+      entry: UnixEntry;
+      cursor: Cursor;
     }
   | {
       kind: 'unfold';

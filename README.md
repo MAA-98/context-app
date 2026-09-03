@@ -166,21 +166,33 @@ If the cursor is on an open or closed directory, Left still moves toward its par
 
 ## Folding
 
-> **Warning:** Folding is experimental and its behavior will change in new builds.
+Folding is separate from opening and closing directories. It hides entries from a directory's visible tree without changing their open or closed state.
 
-Folding is separate from opening and closing directories. It controls the visibility of entries while preserving their directory open/closed state.
+A fold can contain any direct entry in a directory:
+- Files
+- Symlinks
+- Open and closed directories
 
-The current experimental folding controls are:
+Folding an open directory does not close it. Its descendants remain in the buffer and retain their own open, closed, and folded state.
+
+### Controls
 
 | Key | Action |
 |---|---|
-| `zc` | Close the current fold |
-| `zo` | Open the current fold |
-| `za` | Toggle the current fold |
+| `zc` | Fold the current entry into its parent directory's fold |
+| `zo` | Unfold the current fold |
+| `za` | Fold the current entry or unfold the current fold |
 
-For example, folding an expanded directory hides its contents without closing its child directories. Unfolding it restores the previous view and preserves the descendants' open/closed state.
+The fold row is displayed after all visible entries and descendants of that directory. It is not part of the directory's normal entry ordering.
 
-Folding is currently experimental and its behavior and controls will change closer to Vim and Neovim's buffer-folding model.
+The fold row represents all folded direct entries in that directory. When the cursor is on the fold row, `zo` unfolds the folded entries. The cursor moves to the first unfolded entry.
+
+Folding state is independent from the materialized directory buffer:
+
+- Closing a directory removes its loaded descendants.
+- Closing a directory does not remove its fold state.
+- Reopening the directory reloads its entries and reapplies the existing folds.
+- Folding or unfolding an entry does not change whether that entry's directory is open.
 
 ## Licensing
 

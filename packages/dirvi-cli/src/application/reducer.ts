@@ -23,36 +23,16 @@ export function reducer(state: State, action: ReducerAction): State {
       };
 
     case 'fold': {
-      const entries = UnixEntry.getEntriesAtPath(
-        state.buffer,
-        action.parentPath,
-      );
-
-      if (entries === undefined) {
-        return state;
-      }
-
-      const entry = entries.find(
-        (candidate) => candidate.name === action.entryName,
-      );
-
-      if (entry === undefined) {
-        return state;
-      }
-
       const folds = FoldNode.addFoldedEntryAtPath(
         state.folds,
         action.parentPath,
-        entry,
+        action.entry,
       );
 
       return {
         ...state,
         folds,
-        cursor: {
-          kind: 'fold',
-          parentPath: action.parentPath,
-        },
+        cursor: action.cursor,
       };
     }
 

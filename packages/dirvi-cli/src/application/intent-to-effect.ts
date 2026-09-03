@@ -19,13 +19,13 @@ export type EffectAction =
       kind: 'outDir';
     }
   | {
-      kind: 'toggleFold';
-    }
-  | {
       kind: 'fold';
     }
   | {
       kind: 'unfold';
+    }
+  | {
+      kind: 'toggleFold';
     };
 
 export type Effect =

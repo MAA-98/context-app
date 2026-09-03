@@ -62,10 +62,16 @@ export function effectToAction(
         return undefined;
       }
 
+      const cursor = NavigationNode.cursorAfterFold(navigation, state.cursor);
+      if (cursor === undefined) {
+        return undefined;
+      }
+
       return {
         kind: 'fold',
         parentPath: state.cursor.parentPath,
-        entryName: state.cursor.entryName,
+        entry,
+        cursor,
       };
     }
 
@@ -95,5 +101,12 @@ export function effectToAction(
         },
       };
     }
+
+    case 'toggleFold':
+      return effectToAction(
+        state.cursor.kind === 'fold' ? { kind: 'unfold' } : { kind: 'fold' },
+        navigation,
+        state,
+      );
   }
 }

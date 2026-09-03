@@ -184,6 +184,47 @@ export const NavigationNode = {
     return cursors[currentIndex - 1];
   },
 
+  cursorAfterFold(
+    rootNode: NavigationNode,
+    cursor: Cursor,
+  ): Cursor | undefined {
+    if (cursor.kind === 'fold') {
+      return undefined;
+    }
+
+    const cursors = cursorsInNode(rootNode, []);
+
+    const currentIndex = cursors.findIndex((candidate) =>
+      Cursor.equal(candidate, cursor),
+    );
+
+    if (currentIndex === -1) {
+      return undefined;
+    }
+
+    const foldedPath = [...cursor.parentPath, cursor.entryName];
+
+    for (let index = currentIndex + 1; index < cursors.length; index += 1) {
+      const candidate = cursors[index];
+
+      if (candidate === undefined) {
+        continue;
+      }
+
+      if (cursorBelongsToSubtree(candidate, foldedPath)) {
+        continue;
+      }
+
+      return candidate;
+    }
+
+    // The fold row will be created at the end of this directory.
+    return {
+      kind: 'fold',
+      parentPath: cursor.parentPath,
+    };
+  },
+
   parentCursor(navigation: NavigationNode, cursor: Cursor): Cursor | undefined {
     const parentPath = cursor.parentPath;
 
@@ -210,6 +251,37 @@ export const NavigationNode = {
       parentPath: containingPath,
       entryName,
     };
+  },
+
+  visibleFilesPaths(
+    navigation: NavigationNode,
+    parentPath: UnixEntryPath = [],
+  ): UnixEntryPath[] {
+    const paths: UnixEntryPath[] = [];
+
+    for (const entry of navigation.entries) {
+      const entryPath = [...parentPath, entry.name];
+
+      switch (entry.kind) {
+        case 'file':
+          paths.push(entryPath);
+          break;
+
+        case 'symlink':
+          // Do not recurse through symlinks.
+          break;
+
+        case 'directory':
+          if (entry.node !== undefined) {
+            paths.push(
+              ...NavigationNode.visibleFilesPaths(entry.node, entryPath),
+            );
+          }
+          break;
+      }
+    }
+
+    return paths;
   },
 };
 
@@ -241,4 +313,17 @@ function cursorsInNode(
   }
 
   return cursors;
+}
+
+function cursorBelongsToSubtree(
+  cursor: Cursor,
+  entryPath: UnixEntryPath,
+): boolean {
+  if (cursor.kind === 'fold') {
+    return UnixEntryPath.isStrictPathPrefix(entryPath, cursor.parentPath);
+  }
+
+  const cursorPath = [...cursor.parentPath, cursor.entryName];
+
+  return UnixEntryPath.isStrictPathPrefix(entryPath, cursorPath);
 }

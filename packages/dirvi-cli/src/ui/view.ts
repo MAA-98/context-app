@@ -1,5 +1,9 @@
-import { Cursor, DisplayRow, State } from 'dirvi-lib';
-import { createDisplayRows } from '../application/display-rows.js';
+import {
+  Cursor,
+  NavigationEntry,
+  NavigationNode,
+  UnixEntryPath,
+} from 'dirvi-lib';
 
 export type ViewRowType = 'file' | 'directory' | 'fold';
 
@@ -21,68 +25,110 @@ export type View = {
 };
 
 export const View = {
+  createRows(
+    navigation: NavigationNode,
+    cursor: Cursor,
+  ): ViewRow[] {
+    return viewRowsAtNode(navigation, [], cursor);
+  },
+  
   create(
-    state: State,
+    navigation: NavigationNode,
+    cursor: Cursor,
     viewportHeight: number,
     viewportStart: number,
   ): View {
-    const displayRows = createDisplayRows(state.buffer, state.folds);
-
-    const visibleDisplayRows = displayRows.slice(
-      viewportStart,
-      viewportStart + viewportHeight,
-    );
-
-    const rows = visibleDisplayRows.map((displayRow): ViewRow => {
-      const cursor = Cursor.matchesDisplayRow(state.cursor, displayRow);
-
-      return {
-        id: id(displayRow),
-        indent: displayRow.parentPath.length,
-        selected: cursor,
-        cursor,
-        content: content(displayRow),
-        type: type(displayRow),
-      };
-    });
-
+    const rows = View.createRows(navigation, cursor);
+    
     return {
-      rows,
+      rows: rows.slice(
+        viewportStart,
+        viewportStart + viewportHeight,
+      ),
     };
   },
 };
 
-function id(row: DisplayRow): string {
-  if (row.kind === 'entry') {
-    return `entry:${JSON.stringify([...row.parentPath, row.entry.name])}`;
+function viewRowsAtNode(
+  node: NavigationNode,
+  parentPath: UnixEntryPath,
+  cursor: Cursor,
+): ViewRow[] {
+  const rows: ViewRow[] = [];
+
+  for (const entry of node.entries) {
+    const isCursor =
+      cursor.kind === 'entry' &&
+      UnixEntryPath.equal(cursor.parentPath, parentPath) &&
+      cursor.entryName === entry.name;
+
+    rows.push(viewRowForEntry(entry, parentPath, isCursor));
+
+    if (entry.kind !== 'directory' || entry.node === undefined) {
+      continue;
+    }
+
+    rows.push(
+      ...viewRowsAtNode(entry.node, [...parentPath, entry.name], cursor),
+    );
   }
 
-  return `fold:${JSON.stringify(row.parentPath)}`;
+  if (node.foldedEntries.length > 0) {
+    const isCursor =
+      cursor.kind === 'fold' &&
+      UnixEntryPath.equal(cursor.parentPath, parentPath);
+
+    rows.push({
+      id: foldId(parentPath),
+      indent: parentPath.length,
+      selected: isCursor,
+      cursor: isCursor,
+      content: `⋯ ${node.foldedEntries.length} folded entries`,
+      type: 'fold',
+    });
+  }
+
+  return rows;
 }
 
-function content(row: DisplayRow): string {
-  if (row.kind === 'fold') {
-    return `⋯ ${row.entryNames.length} folded entries`;
-  }
+function viewRowForEntry(
+  entry: NavigationEntry,
+  parentPath: UnixEntryPath,
+  cursor: boolean,
+): ViewRow {
+  return {
+    id: entryId(parentPath, entry.name),
+    indent: parentPath.length,
+    selected: cursor,
+    cursor,
+    content: content(entry),
+    type: type(entry),
+  };
+}
 
-  switch (row.entry.kind) {
+function entryId(parentPath: UnixEntryPath, entryName: string): string {
+  return `entry:${JSON.stringify([...parentPath, entryName])}`;
+}
+
+function foldId(parentPath: UnixEntryPath): string {
+  return `fold:${JSON.stringify(parentPath)}`;
+}
+
+function content(entry: NavigationEntry): string {
+  switch (entry.kind) {
     case 'file':
-      return row.entry.name;
+      return entry.name;
 
     case 'directory':
-      return `${row.entry.name}/`;
+      return `${entry.name}/`;
 
     case 'symlink':
-      return `${row.entry.name} -> ${row.entry.target}`;
+      return `${entry.name} -> ${entry.target}`;
   }
 }
 
-function type(row: DisplayRow): ViewRowType {
-  if (row.kind === 'fold') {
-    return 'fold';
-  }
-
-  switch (row.entry.kind) {
+function type(entry: NavigationEntry): ViewRowType {
+  switch (entry.kind) {
     case 'file':
       return 'file';
 
