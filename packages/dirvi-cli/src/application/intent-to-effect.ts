@@ -123,6 +123,11 @@ function commandBufferToEffectResult(
         },
       };
 
+    case 'z':
+      return {
+        commandBuffer: updatedCommandBuffer,
+      };
+
     case 'za':
       return {
         commandBuffer: '',
@@ -149,7 +154,7 @@ function commandBufferToEffectResult(
 
     default:
       return {
-        commandBuffer: updatedCommandBuffer,
+        commandBuffer: '',
       };
   }
 }
