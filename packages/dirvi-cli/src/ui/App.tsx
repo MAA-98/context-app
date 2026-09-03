@@ -7,12 +7,11 @@ import type { UnixAbsolutePath } from 'dirvi-lib';
 
 import { useView } from './hooks/useView.js';
 import { reducer } from '../application/reducer.js';
-import {
-  userInputToInputResult,
-  PendingInput,
-} from '../infrastructure/input.js';
 import { EventMessage } from '../domain/event-message.js';
 import { ViewRowComponent } from './components/ViewRowComponent.js';
+import { inkInputToUserInput } from '../infrastructure/user-input.js';
+import { userInputToIntent } from '../application/user-input-to-intent.js';
+import { Effect, intentToEffect } from '../application/intent-to-effect.js';
 
 export type AppProps = {
   cwdAddress: UnixAbsolutePath;
@@ -23,9 +22,8 @@ export type AppProps = {
 
 export function App({ cwdAddress, initialState, print, onError }: AppProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [commandBuffer, setCommandBuffer] = useState<string>('');
   const view = useView(state);
-
-  const pendingInput = useRef<PendingInput | undefined>(undefined);
   const [exitStatus, setExitStatus] = useState<string | undefined>();
 
   // Print view on changes
@@ -36,42 +34,21 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
     //   paths: displayedFilePaths(displayRows),
     // });
   }, [state, print]);
+  
+  function executeEffect(effect: Effect): void {
+    switch (effect.effectType) {
+      case 'dispatch':
+        dispatch(effect.action);
+        return;
 
-  // --- Input ---
-  useInput((input, key) => {
-    const result = userInputToInputResult(
-      input,
-      key,
-      state,
-      pendingInput.current,
-    );
+      case 'loadDir': {
+        const address = join(cwdAddress, ...effect.path);
 
-    if (result === undefined) {
-      return;
-    }
-
-    if (result === 'z') {
-      pendingInput.current = result;
-      return;
-    }
-    pendingInput.current = undefined;
-
-    const action = result;
-
-    // Contents of `updateDir` change meaning at this boundary:
-    if (action.kind === 'updateDir') {
-      // If the entry at the path is directory with no entries loaded:
-      if (action.entries === undefined) {
-        const path = Cursor.getPath(state.cursor);
-        if (path === undefined) {
-          return undefined;
-        }
-        const address = join(cwdAddress, ...path);
         void getDirLazyEntries(address)
           .then((entries) => {
             dispatch({
               kind: 'updateDir',
-              path: path,
+              path: effect.path,
               entries,
             });
           })
@@ -82,31 +59,47 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
             onError?.(appError);
             setExitStatus(`Unable to open directory: ${appError.message}`);
           });
-      } else {
-        // Otherwise need to wipe the entries:
-        dispatch({
-          kind: 'updateDir',
-          path: action.path,
-          entries: undefined,
-        });
+
+        return;
       }
+
+      case 'printFile':
+        print?.({
+          type: 'file',
+          path: effect.path,
+        });
+        return;
+
+      case 'exit':
+        setExitStatus(effect.exitMessage);
+        return;
+    }
+  }
+  
+  // --- Input ---
+  useInput((input, key) => {
+    const userInput = inkInputToUserInput(input, key);
+    if (userInput === undefined) {
       return;
     }
-
-    if (action.kind === 'printFile') {
-      print?.({
-        type: 'file',
-        path: action.path,
-      });
-
+    
+    const intent = userInputToIntent(userInput, commandBuffer);
+    if (intent === undefined) {
+      return
+    }
+    
+    const effectResult = intentToEffect(intent, state)
+    if (effectResult === undefined) {
+      return
+    }
+    
+    setCommandBuffer(effectResult.commandBuffer);
+    
+    if (effectResult.effect === undefined) {
       return;
     }
-
-    if (action.kind === 'exit') {
-      setExitStatus(action.exitMessage);
-    }
-
-    dispatch(action);
+    
+    executeEffect(effectResult.effect);
   });
 
   // --- Exit Logic ---

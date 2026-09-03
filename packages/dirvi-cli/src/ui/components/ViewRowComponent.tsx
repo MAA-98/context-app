@@ -2,7 +2,7 @@ import { Box, Text } from 'ink';
 import { ViewRow } from '../view.js';
 
 export function ViewRowComponent({ row }: { row: ViewRow }) {
-  const prefix = row.cursor ? '>' : ' ';
+  const prefix = '';
 
   switch (row.type) {
     case 'file':

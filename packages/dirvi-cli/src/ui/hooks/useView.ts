@@ -4,6 +4,8 @@ import { useWindowSize } from 'ink';
 import { useRef } from 'react';
 import { createDisplayRows } from '../../application/display-rows.js';
 
+// Hooks that keeps Ref of the viewport's start, and returns View sliced to
+// only the rows that should be visible.
 export function useView(state: State): View {
   const { rows: terminalRows } = useWindowSize();
   const viewportStartRef = useRef(0);
