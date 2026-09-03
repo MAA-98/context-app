@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { Box, Text, useApp, useInput } from 'ink';
+import { Box, Text, useApp, useInput, useWindowSize } from 'ink';
 import { useEffect, useMemo, useReducer, useState } from 'react';
 
 import { getDirLazyEntries, NavigationNode, State } from 'dirvi-lib';
@@ -13,6 +13,7 @@ import { inkInputToUserInput } from '../infrastructure/user-input.js';
 import { userInputToIntent } from '../application/user-input-to-intent.js';
 import { Effect, intentToEffect } from '../application/intent-to-effect.js';
 import { effectToAction } from '../application/effect-to-action.js';
+import { StatusBar } from './components/StatusBar.js';
 
 export type AppProps = {
   cwdAddress: UnixAbsolutePath;
@@ -28,7 +29,8 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
     [state.buffer, state.folds],
   );
   const [commandBuffer, setCommandBuffer] = useState<string>('');
-  const view = useView(navigation, state);
+  const { rows: terminalRows } = useWindowSize();
+  const view = useView(navigation, state, terminalRows);
   const [exitStatus, setExitStatus] = useState<string | undefined>();
 
   // Print view on changes
@@ -134,12 +136,16 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
 
   // --- JSX ---
   return (
-    <Box flexDirection="column">
-      {view.rows.length === 0 ? (
-        <Text dimColor>Directory is empty.</Text>
-      ) : (
-        view.rows.map((row) => <ViewRowComponent key={row.id} row={row} />)
-      )}
+    <Box flexDirection="column" height={terminalRows}>
+      <Box flexDirection="column" flexGrow={1} flexShrink={1}>
+        {view.rows.length === 0 ? (
+          <Text dimColor>Directory is empty.</Text>
+        ) : (
+          view.rows.map((row) => <ViewRowComponent key={row.id} row={row} />)
+        )}
+      </Box>
+
+      <StatusBar commandBuffer={commandBuffer} />
     </Box>
   );
 }
