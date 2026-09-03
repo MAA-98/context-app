@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { UnixPath } from './unix-path.js';
-import { NavigationNode } from './navigation-node.js';
 
 // UNIX ENTRY
 export const UnixEntryNameSchema = z

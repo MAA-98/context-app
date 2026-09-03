@@ -33,7 +33,7 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
     print?.({ type: 'view', view: state });
     
     const visibleFilesPaths = NavigationNode.visibleFilesPaths(navigation).map(
-      (path) => join(cwdAddress, ...path),
+      (path) => join(...path),
     );
     print?.({
       type: 'displayed-files-paths',
