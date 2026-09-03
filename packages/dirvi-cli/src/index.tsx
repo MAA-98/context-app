@@ -44,7 +44,7 @@ process.on('exit', restoreTerminal);
 program
   .name('direx')
   .description('View and manage directories.')
-  .version('0.3.1')
+  .version('0.3.2')
   .helpOption('--help')
   .action(async () => {
     const initialProps = await loadInitialProps();
