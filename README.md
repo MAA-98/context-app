@@ -88,7 +88,7 @@ source ~/.zshrc
 
 ## Open/Close Directory
 
-Opening and closing affect the materialized tree ([`DirectoryBuffer`](packages/dirvi-lib/src/domain/view.ts)) in the TUI:
+Opening and closing affect the materialized tree ([`DirectoryBuffer`](packages/dirvi-lib/src/domain/state.ts)) in the TUI:
 
 - Opening a directory creates its child entries in the buffer.
 - Closing a directory removes its descendants from the buffer.

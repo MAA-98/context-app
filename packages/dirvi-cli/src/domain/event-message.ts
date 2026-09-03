@@ -1,9 +1,9 @@
-import { UnixEntryPath, View } from 'dirvi-lib';
+import { UnixEntryPath, State } from 'dirvi-lib';
 
 export type EventMessage =
   | {
       type: 'view';
-      view: View;
+      view: State;
     }
   | {
       type: 'displayed-files-paths';

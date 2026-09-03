@@ -12,7 +12,7 @@ export async function loadInitialProps(): Promise<ShellAppProps> {
   if (lazyEntries.length === 0) {
     return {
       cwdAddress,
-      initialView: {
+      initialState: {
         cursor: undefined,
       },
     };
@@ -28,7 +28,7 @@ export async function loadInitialProps(): Promise<ShellAppProps> {
 
   return {
     cwdAddress,
-    initialView: {
+    initialState: {
       buffer: {
         entries: lazyEntries,
       },

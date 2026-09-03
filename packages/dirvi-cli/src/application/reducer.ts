@@ -1,13 +1,13 @@
 import {
   UnixEntry,
-  View,
+  State,
   FoldNode,
   Cursor,
 } from 'dirvi-lib';
 import { createDisplayRows, displayRowAtPath } from './display-rows.js';
 import { Action } from './action.js';
 
-export function reducer(view: View, action: Action): View {
+export function reducer(view: State, action: Action): State {
   switch (action.kind) {
     case 'nextEntry':
     case 'prevEntry': {

@@ -2,43 +2,49 @@ import { join } from 'node:path';
 import { Box, Text, useApp, useInput } from 'ink';
 import { useEffect, useReducer, useRef, useState } from 'react';
 
-import { Cursor, DisplayRow, getDirLazyEntries } from 'dirvi-lib';
-import type { UnixAbsolutePath, View } from 'dirvi-lib';
+import { Cursor, getDirLazyEntries, State } from 'dirvi-lib';
+import type { UnixAbsolutePath } from 'dirvi-lib';
 
+import { useView } from './hooks/useView.js';
 import { reducer } from '../application/reducer.js';
-import { userInputToInputResult, PendingInput } from '../infrastructure/input.js';
-import DirEntries from './components/DirEntries.js';
-import { createDisplayRows } from '../application/display-rows.js';
+import {
+  userInputToInputResult,
+  PendingInput,
+} from '../infrastructure/input.js';
 import { EventMessage } from '../domain/event-message.js';
-import * as path from 'node:path';
+import { ViewRowComponent } from './components/ViewRowComponent.js';
 
 export type AppProps = {
   cwdAddress: UnixAbsolutePath;
-  initialView: View;
+  initialState: State;
   print?: (message: EventMessage) => void;
   onError?: (error: Error) => void;
 };
 
-export function App({ cwdAddress, initialView, print, onError }: AppProps) {
-  const [view, dispatch] = useReducer(reducer, initialView);
-  const { buffer, folds, cursor } = view;
-  const displayRows = createDisplayRows(buffer, folds);
+export function App({ cwdAddress, initialState, print, onError }: AppProps) {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const view = useView(state);
 
   const pendingInput = useRef<PendingInput | undefined>(undefined);
   const [exitStatus, setExitStatus] = useState<string | undefined>();
 
   // Print view on changes
   useEffect(() => {
-    print?.({ type: 'view', view: view });
-    print?.({
-      type: 'displayed-files-paths',
-      paths: displayedFilePaths(displayRows),
-    });
-  }, [view, print]);
+    print?.({ type: 'view', view: state });
+    // print?.({
+    //   type: 'displayed-files-paths',
+    //   paths: displayedFilePaths(displayRows),
+    // });
+  }, [state, print]);
 
   // --- Input ---
   useInput((input, key) => {
-    const result = userInputToInputResult(input, key, view, pendingInput.current);
+    const result = userInputToInputResult(
+      input,
+      key,
+      state,
+      pendingInput.current,
+    );
 
     if (result === undefined) {
       return;
@@ -56,9 +62,9 @@ export function App({ cwdAddress, initialView, print, onError }: AppProps) {
     if (action.kind === 'updateDir') {
       // If the entry at the path is directory with no entries loaded:
       if (action.entries === undefined) {
-        const path = Cursor.getPath(view.cursor)
+        const path = Cursor.getPath(state.cursor);
         if (path === undefined) {
-          return undefined
+          return undefined;
         }
         const address = join(cwdAddress, ...path);
         void getDirLazyEntries(address)
@@ -81,7 +87,7 @@ export function App({ cwdAddress, initialView, print, onError }: AppProps) {
         dispatch({
           kind: 'updateDir',
           path: action.path,
-          entries: undefined
+          entries: undefined,
         });
       }
       return;
@@ -124,23 +130,13 @@ export function App({ cwdAddress, initialView, print, onError }: AppProps) {
   // --- JSX ---
   return (
     <Box flexDirection="column">
-      {buffer.entries.length === 0 || cursor === undefined ? (
+      {view.rows.length === 0 ? (
         <Text dimColor>Directory is empty.</Text>
       ) : (
-        <DirEntries rows={displayRows} cursor={cursor} />
+        view.rows.map((row) => (
+          <ViewRowComponent key={row.id} row={row} />
+        ))
       )}
     </Box>
   );
-}
-
-export function displayedFilePaths(rows: readonly DisplayRow[]): string[] {
-  return rows.flatMap((row) => {
-    if ((row.kind !== 'entry') || (row.entry.kind !== 'file')) {
-      return [];
-    }
-    
-    return [
-      path.posix.join(...row.parentPath.map(String), String(row.entry.name)),
-    ];
-  });
 }

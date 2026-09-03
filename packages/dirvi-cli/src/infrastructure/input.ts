@@ -1,6 +1,6 @@
 import type { Key } from 'ink';
 
-import { Cursor, View } from 'dirvi-lib';
+import { Cursor, State, View } from 'dirvi-lib';
 import { Action } from '../application/action.js';
 
 export type PendingInput = 'z';
@@ -9,7 +9,7 @@ export type InputResult = Action | PendingInput | undefined;
 export function userInputToInputResult(
   input: string,
   key: Key,
-  view: View,
+  view: State,
   pendingInput?: PendingInput,
 ): InputResult {
   // Adding Pending Input
