@@ -23,7 +23,10 @@ export type AppProps = {
 
 export function App({ cwdAddress, initialState, print, onError }: AppProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const navigation = useMemo(() => NavigationNode.from(state.buffer, state.folds), [state.buffer, state.folds]);
+  const navigation = useMemo(
+    () => NavigationNode.from(state.buffer, state.folds),
+    [state.buffer, state.folds],
+  );
   const [commandBuffer, setCommandBuffer] = useState<string>('');
   const view = useView(navigation, state);
   const [exitStatus, setExitStatus] = useState<string | undefined>();
@@ -31,7 +34,7 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
   // Print view on changes
   useEffect(() => {
     print?.({ type: 'view', view: state });
-    
+
     const visibleFilesPaths = NavigationNode.visibleFilesPaths(navigation).map(
       (path) => join(...path),
     );
@@ -40,12 +43,12 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
       paths: visibleFilesPaths,
     });
   }, [state, print, navigation, cwdAddress]);
-  
+
   function executeEffect(effect: Effect | undefined): void {
     if (effect === undefined) {
       return;
     }
-    
+
     switch (effect.effectType) {
       case 'dispatchEffectAsAction':
         const action = effectToAction(effect.action, navigation, state);
@@ -89,24 +92,24 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
         return;
     }
   }
-  
+
   // --- Input Hook ---
   useInput((input, key) => {
     const userInput = inkInputToUserInput(input, key);
     if (userInput === undefined) {
       return;
     }
-    
+
     const intent = userInputToIntent(userInput, commandBuffer);
     if (intent === undefined) {
-      return
+      return;
     }
-    
-    const effectResult = intentToEffect(intent, state)
+
+    const effectResult = intentToEffect(intent, state);
     if (effectResult === undefined) {
-      return
+      return;
     }
-    
+
     setCommandBuffer(effectResult.commandBuffer);
     executeEffect(effectResult.effect);
   });
@@ -135,9 +138,7 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
       {view.rows.length === 0 ? (
         <Text dimColor>Directory is empty.</Text>
       ) : (
-        view.rows.map((row) => (
-          <ViewRowComponent key={row.id} row={row} />
-        ))
+        view.rows.map((row) => <ViewRowComponent key={row.id} row={row} />)
       )}
     </Box>
   );

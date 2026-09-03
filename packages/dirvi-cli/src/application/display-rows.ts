@@ -1,6 +1,7 @@
 import {
   DisplayRow,
-  UnixEntryPath, FoldNode,
+  UnixEntryPath,
+  FoldNode,
   UnixEntry,
   UnixEntryName,
 } from 'dirvi-lib';
@@ -81,7 +82,8 @@ export function displayRowAtPath(
   return rows.find((row) => {
     if (row.kind === 'entry') {
       return (
-        row.entry.name === entryName && UnixEntryPath.equal(row.parentPath, parentPath)
+        row.entry.name === entryName &&
+        UnixEntryPath.equal(row.parentPath, parentPath)
       );
     }
 

@@ -18,5 +18,5 @@ export const View = {
     }
 
     return UnixEntry.getEntryAtPath(view.buffer, path);
-  }
-}
+  },
+};

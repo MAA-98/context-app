@@ -1,7 +1,4 @@
-import {
-  UnixEntry,
-  State, FoldNode,
-} from 'dirvi-lib';
+import { UnixEntry, State, FoldNode } from 'dirvi-lib';
 import { ReducerAction } from './reducer-action.js';
 
 export function reducer(state: State, action: ReducerAction): State {

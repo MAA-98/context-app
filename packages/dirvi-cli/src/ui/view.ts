@@ -25,13 +25,10 @@ export type View = {
 };
 
 export const View = {
-  createRows(
-    navigation: NavigationNode,
-    cursor: Cursor,
-  ): ViewRow[] {
+  createRows(navigation: NavigationNode, cursor: Cursor): ViewRow[] {
     return viewRowsAtNode(navigation, [], cursor);
   },
-  
+
   create(
     navigation: NavigationNode,
     cursor: Cursor,
@@ -39,12 +36,9 @@ export const View = {
     viewportStart: number,
   ): View {
     const rows = View.createRows(navigation, cursor);
-    
+
     return {
-      rows: rows.slice(
-        viewportStart,
-        viewportStart + viewportHeight,
-      ),
+      rows: rows.slice(viewportStart, viewportStart + viewportHeight),
     };
   },
 };

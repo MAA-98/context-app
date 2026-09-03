@@ -18,7 +18,7 @@ export function useView(navigation: NavigationNode, state: State): View {
     viewportHeight,
     viewportStartRef.current,
   );
-  
+
   return View.create(
     navigation,
     state.cursor,

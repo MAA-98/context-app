@@ -25,10 +25,10 @@ export const DisplayEntry = {
         name: entry.name,
       };
     }
-    
+
     return entry;
-  }
-}
+  },
+};
 
 export type DisplayRow =
   | {

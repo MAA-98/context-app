@@ -22,7 +22,10 @@ export type UserInput =
     };
 
 // Interprets raw user input to typed UserInput.
-export function inkInputToUserInput(input: string, key: Key): UserInput | undefined {
+export function inkInputToUserInput(
+  input: string,
+  key: Key,
+): UserInput | undefined {
   if (key.escape) {
     return {
       userInputType: 'esc',
@@ -52,7 +55,7 @@ export function inkInputToUserInput(input: string, key: Key): UserInput | undefi
       userInputType: 'downArrow',
     };
   }
-  
+
   if (input !== '') {
     return {
       userInputType: 'character',

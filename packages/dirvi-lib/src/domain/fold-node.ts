@@ -112,7 +112,10 @@ export const FoldNode = {
 // PRIVATE HELPERS
 
 // Queries
-function hasFoldedEntryNamed(node: FoldNode, entryName: UnixEntryName): boolean {
+function hasFoldedEntryNamed(
+  node: FoldNode,
+  entryName: UnixEntryName,
+): boolean {
   return node.folds.includes(entryName);
 }
 
@@ -121,9 +124,12 @@ function uniqueEntryNames(entryNames: UnixEntryName[]): UnixEntryName[] {
 }
 
 // Adding
-function setFoldedEntriesNamed(node: FoldNode, entryNames: UnixEntryName[]): FoldNode {
+function setFoldedEntriesNamed(
+  node: FoldNode,
+  entryNames: UnixEntryName[],
+): FoldNode {
   const uniqueNames = uniqueEntryNames(entryNames);
-  
+
   return {
     ...node,
     folds: uniqueNames,

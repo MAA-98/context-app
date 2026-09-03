@@ -28,7 +28,7 @@ export const Cursor = {
 
     return true;
   },
-  
+
   matchesDisplayRow(cursor: Cursor, row: DisplayRow): boolean {
     if (cursor.kind === 'entry' && row.kind === 'entry') {
       return (

@@ -1,7 +1,8 @@
 import {
   getCwdAbsPath,
   getDirLazyEntries,
-  FoldNode, DisplayEntry,
+  FoldNode,
+  DisplayEntry,
 } from 'dirvi-lib';
 import { ShellAppProps } from '../ui/AppShell.js';
 

@@ -63,11 +63,11 @@ export function userInputToIntent(
       updatedCommandBuffer: '',
     };
   }
-  
+
   if (userInput.userInputType === 'character') {
     return characterToIntent(userInput.string, commandBuffer);
   }
-  
+
   switch (userInput.userInputType) {
     case 'rightArrow':
       return {

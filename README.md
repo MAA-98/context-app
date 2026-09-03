@@ -22,10 +22,11 @@ dirvi
 
 ### Piping Event Stream
 
-`dirvi` can be connected to another process through stdout, 
+`dirvi` can be connected to another process through stdout,
 after which it will send an event stream for consumers.
 
 The events:
+
 - When the view (directory buffer, folds, cursor) changes, the current view is sent.
 - When the view changes, the relative paths of all the displayed files in the tree is sent.
 - When the cursor is on a file and `l`/`→` is pressed, that file's [`EntryPath`](packages/dirvi-lib/src/domain/display-row.ts).
@@ -50,7 +51,7 @@ export type EventMessage =
     };
 ```
 
-The consumer can use it as they please by piping, filtering and processing the events. 
+The consumer can use it as they please by piping, filtering and processing the events.
 For example:
 
 ```sh
@@ -59,9 +60,10 @@ dirvi | jq --unbuffered -c '.' > dirvi-output.json
 
 `--unbuffered` makes `jq` flush each message immediately, so the `dirvi-output.json` contains a history of the messages sent by `dirvi`.
 
-> Warning: When stdout is connected to a pipe, some terminals and color libraries disable color automatically. 
+> Warning: When stdout is connected to a pipe, some terminals and color libraries disable color automatically.
 
 Set `FORCE_COLOR=3` to preserve the colored tree output:
+
 ```sh
 FORCE_COLOR=3 dirvi | jq --unbuffered -c '.' > dirvi-output.json
 ```
@@ -71,7 +73,9 @@ For convenience, you can define an alias:
 ```sh
 alias dirvi-pipe='FORCE_COLOR=3 dirvi'
 ```
+
 with zshell:
+
 ```
 echo "alias dirvi-pipe='FORCE_COLOR=3 dirvi'" >> ~/.zshrc
 source ~/.zshrc
@@ -169,6 +173,7 @@ If the cursor is on an open or closed directory, Left still moves toward its par
 Folding is separate from opening and closing directories. It hides entries from a directory's visible tree without changing their open or closed state.
 
 A fold can contain any direct entry in a directory:
+
 - Files
 - Symlinks
 - Open and closed directories
@@ -177,11 +182,11 @@ Folding an open directory does not close it. Its descendants remain in the buffe
 
 ### Controls
 
-| Key | Action |
-|---|---|
+| Key  | Action                                                  |
+| ---- | ------------------------------------------------------- |
 | `zc` | Fold the current entry into its parent directory's fold |
-| `zo` | Unfold the current fold |
-| `za` | Fold the current entry or unfold the current fold |
+| `zo` | Unfold the current fold                                 |
+| `za` | Fold the current entry or unfold the current fold       |
 
 The fold row is displayed after all visible entries and descendants of that directory. It is not part of the directory's normal entry ordering.
 

@@ -161,15 +161,12 @@ export const UnixEntryPath = {
   equal(left: UnixEntryPath, right: UnixEntryPath): boolean {
     return entryNamesEqual(left, right);
   },
-  
-  isStrictPathPrefix(
-    prefix: UnixEntryPath,
-    path: UnixEntryPath,
-  ): boolean {
+
+  isStrictPathPrefix(prefix: UnixEntryPath, path: UnixEntryPath): boolean {
     if (path.length <= prefix.length) {
       return false;
     }
-    
+
     return prefix.every((name, index) => path[index] === name);
-  }
-}
+  },
+};

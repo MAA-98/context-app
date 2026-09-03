@@ -61,7 +61,7 @@ program
       const app = render(
         <AppShell
           {...initialProps}
-          print={(process.stdout.isTTY) ? undefined : emitEventMsg}
+          print={process.stdout.isTTY ? undefined : emitEventMsg}
           onError={(error) => {
             appError = error;
           }}
