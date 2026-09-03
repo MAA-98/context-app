@@ -1,5 +1,4 @@
 import {
-  DirectoryBuffer,
   DisplayRow,
   UnixEntryPath, FoldNode,
   UnixEntry,
@@ -60,14 +59,14 @@ function displayRowsAtPath(
 }
 
 export function createDisplayRows(
-  buffer: DirectoryBuffer,
+  buffer: UnixEntry[],
   folds: FoldNode,
 ): DisplayRow[] {
-  return displayRowsAtPath(buffer.entries, [], folds);
+  return displayRowsAtPath(buffer, [], folds);
 }
 
 export function displayRowAtPath(
-  buffer: DirectoryBuffer,
+  buffer: UnixEntry[],
   folds: FoldNode,
   path: UnixEntryPath,
 ): DisplayRow | undefined {

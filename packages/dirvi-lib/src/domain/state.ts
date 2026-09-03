@@ -2,12 +2,8 @@ import { UnixEntry } from './unix-entry.js';
 import type { FoldNode } from './fold-node.js';
 import { Cursor } from './cursor.js';
 
-export type DirectoryBuffer = {
-  entries: UnixEntry[];
-};
-
 export type State = {
-  buffer: DirectoryBuffer;
+  buffer: UnixEntry[];
   folds: FoldNode;
   cursor: Cursor;
 };
@@ -21,6 +17,6 @@ export const View = {
       return undefined;
     }
 
-    return UnixEntry.getEntryAtPath(view.buffer.entries, path);
+    return UnixEntry.getEntryAtPath(view.buffer, path);
   }
 }

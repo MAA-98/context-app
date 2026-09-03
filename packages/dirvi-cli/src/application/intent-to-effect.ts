@@ -1,11 +1,37 @@
-import { Cursor, State, UnixEntryPath, View } from 'dirvi-lib';
-import { Action } from './action.js';
+import { Cursor, State, View } from 'dirvi-lib';
 import { Intent } from './user-input-to-intent.js';
+import { UnixEntry, UnixEntryPath } from 'dirvi-lib';
+
+// Still pure actions, but more semantic than ReducerActions.
+export type EffectAction =
+  | {
+      kind: 'nextEntry';
+    }
+  | {
+      kind: 'prevEntry';
+    }
+  | {
+      kind: 'updateDir';
+      path: UnixEntryPath;
+      entries: UnixEntry[] | undefined;
+    }
+  | {
+      kind: 'outDir';
+    }
+  | {
+      kind: 'toggleFold';
+    }
+  | {
+      kind: 'fold';
+    }
+  | {
+      kind: 'unfold';
+    };
 
 export type Effect =
   | {
-      effectType: 'dispatch';
-      action: Action;
+      effectType: 'dispatchEffectAsAction';
+      action: EffectAction;
     }
   | {
       effectType: 'loadDir';
@@ -25,9 +51,9 @@ export type EffectResult = {
   effect?: Effect;
 };
 
-function dispatchAction(action: Action): Effect {
+function dispatchAction(action: EffectAction): Effect {
   return {
-    effectType: 'dispatch',
+    effectType: 'dispatchEffectAsAction',
     action,
   };
 }

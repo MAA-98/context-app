@@ -29,9 +29,7 @@ export async function loadInitialProps(): Promise<ShellAppProps> {
   return {
     cwdAddress,
     initialState: {
-      buffer: {
-        entries: lazyEntries,
-      },
+      buffer: lazyEntries,
       cursor: {
         kind: 'entry',
         parentPath: [],

@@ -6,7 +6,7 @@ export type ViewRowType = 'file' | 'directory' | 'fold';
 // Encodes the display of blocks of rows, so renderer stays dumb
 // by just writing all blocks in sequence.
 //
-// Id useful for React key.
+// id useful for React key.
 export type ViewRow = {
   id: string;
   indent: number;

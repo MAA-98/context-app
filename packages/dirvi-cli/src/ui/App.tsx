@@ -1,8 +1,8 @@
 import { join } from 'node:path';
 import { Box, Text, useApp, useInput } from 'ink';
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { useEffect, useMemo, useReducer, useState } from 'react';
 
-import { Cursor, getDirLazyEntries, State } from 'dirvi-lib';
+import { getDirLazyEntries, NavigationNode, State } from 'dirvi-lib';
 import type { UnixAbsolutePath } from 'dirvi-lib';
 
 import { useView } from './hooks/useView.js';
@@ -12,6 +12,7 @@ import { ViewRowComponent } from './components/ViewRowComponent.js';
 import { inkInputToUserInput } from '../infrastructure/user-input.js';
 import { userInputToIntent } from '../application/user-input-to-intent.js';
 import { Effect, intentToEffect } from '../application/intent-to-effect.js';
+import { effectToAction } from '../application/effect-to-action.js';
 
 export type AppProps = {
   cwdAddress: UnixAbsolutePath;
@@ -22,8 +23,9 @@ export type AppProps = {
 
 export function App({ cwdAddress, initialState, print, onError }: AppProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const navigation = useMemo(() => NavigationNode.from(state.buffer, state.folds), [state.buffer, state.folds]);
   const [commandBuffer, setCommandBuffer] = useState<string>('');
-  const view = useView(state);
+  const view = useView(navigation, state);
   const [exitStatus, setExitStatus] = useState<string | undefined>();
 
   // Print view on changes
@@ -35,10 +37,18 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
     // });
   }, [state, print]);
   
-  function executeEffect(effect: Effect): void {
+  function executeEffect(effect: Effect | undefined): void {
+    if (effect === undefined) {
+      return;
+    }
+    
     switch (effect.effectType) {
-      case 'dispatch':
-        dispatch(effect.action);
+      case 'dispatchEffectAsAction':
+        const action = effectToAction(effect.action, navigation, state);
+        if (action === undefined) {
+          return;
+        }
+        dispatch(action);
         return;
 
       case 'loadDir': {
@@ -76,7 +86,7 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
     }
   }
   
-  // --- Input ---
+  // --- Input Hook ---
   useInput((input, key) => {
     const userInput = inkInputToUserInput(input, key);
     if (userInput === undefined) {
@@ -94,11 +104,6 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
     }
     
     setCommandBuffer(effectResult.commandBuffer);
-    
-    if (effectResult.effect === undefined) {
-      return;
-    }
-    
     executeEffect(effectResult.effect);
   });
 
