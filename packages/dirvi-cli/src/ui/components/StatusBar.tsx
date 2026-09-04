@@ -1,24 +1,35 @@
 import { Box, Text } from 'ink';
+import { InputState } from 'dirvi-lib';
 
 export const STATUS_BAR_HEIGHT = 1;
 
 type StatusBarProps = {
-  commandBuffer: string;
+  inputState: InputState;
 };
 
-export function StatusBar({ commandBuffer }: StatusBarProps) {
+export function StatusBar({ inputState }: StatusBarProps) {
+  const inputMode = inputState.inputMode;
+
   return (
     <Box
       width="100%"
       height={STATUS_BAR_HEIGHT}
       flexDirection="row"
-      justifyContent="flex-end"
+      justifyContent="space-between"
       flexShrink={0}
       backgroundColor={'gray'}
     >
-      <Text color="black" wrap="truncate-start">
-        {commandBuffer}
-      </Text>
+      <Box flexShrink={1}>
+        <Text color="black" wrap="truncate-end">
+          {inputMode === 'command' ? inputState.commandLine : ''}
+        </Text>
+      </Box>
+
+      <Box flexShrink={1}>
+        <Text color="black" wrap="truncate-start">
+          {inputMode === 'normal' ? inputState.normalBuffer : ''}
+        </Text>
+      </Box>
     </Box>
   );
 }

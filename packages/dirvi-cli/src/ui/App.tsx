@@ -2,18 +2,24 @@ import { join } from 'node:path';
 import { Box, Text, useApp, useInput, useWindowSize } from 'ink';
 import { useEffect, useMemo, useReducer, useState } from 'react';
 
-import { getDirLazyEntries, NavigationNode, State } from 'dirvi-lib';
+import {
+  Effect,
+  getDirLazyEntries,
+  InputState,
+  intentToEffect,
+  NavigationNode,
+  State,
+  userInputToIntent,
+} from 'dirvi-lib';
 import type { UnixAbsolutePath } from 'dirvi-lib';
 
 import { useView } from './hooks/useView.js';
 import { reducer } from '../application/reducer.js';
 import { EventMessage } from '../domain/event-message.js';
 import { ViewRowComponent } from './components/ViewRowComponent.js';
-import { inkInputToUserInput } from '../infrastructure/user-input.js';
-import { userInputToIntent } from '../application/user-input-to-intent.js';
-import { Effect, intentToEffect } from '../application/intent-to-effect.js';
 import { effectToAction } from '../application/effect-to-action.js';
 import { StatusBar } from './components/StatusBar.js';
+import { inkInputToUserInput } from '../infrastructure/ink-input-to-user-input.js';
 
 export type AppProps = {
   cwdAddress: UnixAbsolutePath;
@@ -28,7 +34,12 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
     () => NavigationNode.from(state.buffer, state.folds),
     [state.buffer, state.folds],
   );
-  const [commandBuffer, setCommandBuffer] = useState<string>('');
+
+  const [inputState, setInputState] = useState<InputState>({
+    inputMode: 'normal',
+    normalBuffer: '',
+  });
+
   const { rows: terminalRows } = useWindowSize();
   const view = useView(navigation, state, terminalRows);
   const [exitStatus, setExitStatus] = useState<string | undefined>();
@@ -52,12 +63,21 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
     }
 
     switch (effect.effectType) {
-      case 'dispatchEffectAsAction':
+      case 'dispatchEffectAction':
         const action = effectToAction(effect.action, navigation, state);
         if (action === undefined) {
           return;
         }
         dispatch(action);
+        setInputState({
+          inputMode: 'normal',
+          normalBuffer: '',
+        });
+        return;
+
+      case 'setInputState':
+        console.log('setInputState', effect.inputState);
+        setInputState(effect.inputState);
         return;
 
       case 'loadDir': {
@@ -89,7 +109,7 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
         });
         return;
 
-      case 'exit':
+      case 'quit':
         setExitStatus(effect.exitMessage);
         return;
     }
@@ -102,7 +122,7 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
       return;
     }
 
-    const intent = userInputToIntent(userInput, commandBuffer);
+    const intent = userInputToIntent(userInput, inputState);
     if (intent === undefined) {
       return;
     }
@@ -112,8 +132,7 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
       return;
     }
 
-    setCommandBuffer(effectResult.commandBuffer);
-    executeEffect(effectResult.effect);
+    executeEffect(effectResult);
   });
 
   // --- Exit Logic ---
@@ -145,7 +164,7 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
         )}
       </Box>
 
-      <StatusBar commandBuffer={commandBuffer} />
+      <StatusBar inputState={inputState} />
     </Box>
   );
 }

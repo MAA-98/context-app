@@ -2,8 +2,6 @@
 
 A terminal UI for browsing directories as an expandable tree.
 
-`dirvi` does not change the tree root while navigating. Directories are opened and closed in place, and the cursor moves through the currently visible entries.
-
 ## Installation
 
 Install `dirvi` globally with npm:
@@ -83,12 +81,58 @@ source ~/.zshrc
 
 ## Controls
 
+`dirvi` has two input modes:
+
+- **Normal mode** is used for navigating and interacting with the directory tree.
+- **Command-line mode** is used to enter commands beginning with `:`.
+
+The current input mode and pending input are shown in the status bar at the bottom of the terminal.
+
+### Normal mode
+
+Normal mode is the default mode when `dirvi` starts.
+
+#### Single Key
+
 | Key         | Action                                                                   |
 | ----------- | ------------------------------------------------------------------------ |
 | `j` / Down  | Move to the next visible entry                                           |
 | `k` / Up    | Move to the previous visible entry                                       |
 | `h` / Left  | Move to the parent directory                                             |
 | `l` / Right | Open or close a directory; send a file path when the cursor is on a file |
+| `:`         | Enter command-line mode                                                  |
+| `Esc`       | Clear a pending normal-mode command                                      |
+
+#### Multi-key
+
+| Key sequence | Action                           |
+| ------------ | -------------------------------- |
+| `zc`         | Fold the current entry           |
+| `zo`         | Unfold the current fold          |
+| `za`         | Fold or unfold the current entry |
+
+### Command-line mode
+
+Press `:` in Normal mode to enter command-line mode. The status bar displays the command line:
+
+```text
+:q
+```
+
+| Key         | Action                                       |
+| ----------- | -------------------------------------------- |
+| Characters  | Append characters to the command line        |
+| `Backspace` | Remove the last character                    |
+| `Enter`     | Execute the command                          |
+| `Esc`       | Cancel the command and return to Normal mode |
+
+Currently supported commands:
+
+| Command | Action       |
+| ------- | ------------ |
+| `:q`    | Quit `dirvi` |
+
+An unknown command returns to Normal mode without changing the directory tree.
 
 ## Open/Close Directory
 
@@ -180,19 +224,11 @@ A fold can contain any direct entry in a directory:
 
 Folding an open directory does not close it. Its descendants remain in the buffer and retain their own open, closed, and folded state.
 
-### Controls
-
-| Key  | Action                                                  |
-| ---- | ------------------------------------------------------- |
-| `zc` | Fold the current entry into its parent directory's fold |
-| `zo` | Unfold the current fold                                 |
-| `za` | Fold the current entry or unfold the current fold       |
-
 The fold row is displayed after all visible entries and descendants of that directory. It is not part of the directory's normal entry ordering.
 
 The fold row represents all folded direct entries in that directory. When the cursor is on the fold row, `zo` unfolds the folded entries. The cursor moves to the first unfolded entry.
 
-Folding state is independent from the materialized directory buffer:
+Folding state is independent of the materialized directory buffer:
 
 - Closing a directory removes its loaded descendants.
 - Closing a directory does not remove its fold state.

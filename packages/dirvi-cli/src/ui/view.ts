@@ -77,7 +77,7 @@ function viewRowsAtNode(
       indent: parentPath.length,
       selected: isCursor,
       cursor: isCursor,
-      content: `⋯ ${node.foldedEntries.length} folded entries`,
+      content: `⋯ ${node.foldedEntries.length} folded`,
       type: 'fold',
     });
   }

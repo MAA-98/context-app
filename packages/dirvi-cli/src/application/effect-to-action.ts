@@ -1,14 +1,13 @@
-import { NavigationNode, State } from 'dirvi-lib';
+import { NavigationNode, State, EffectAction } from 'dirvi-lib';
 
 import type { ReducerAction } from './reducer-action.js';
-import { EffectAction } from './intent-to-effect.js';
 
 export function effectToAction(
   effectAction: EffectAction,
   navigation: NavigationNode,
   state: State,
 ): ReducerAction | undefined {
-  switch (effectAction.kind) {
+  switch (effectAction.effectActionType) {
     case 'nextEntry': {
       const cursor = NavigationNode.nextCursor(navigation, state.cursor);
 
@@ -104,7 +103,9 @@ export function effectToAction(
 
     case 'toggleFold':
       return effectToAction(
-        state.cursor.kind === 'fold' ? { kind: 'unfold' } : { kind: 'fold' },
+        state.cursor.kind === 'fold'
+          ? { effectActionType: 'unfold' }
+          : { effectActionType: 'fold' },
         navigation,
         state,
       );

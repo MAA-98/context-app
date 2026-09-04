@@ -8,6 +8,8 @@
   "scripts": {
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "clean": "rm -rf dist packages/*/dist",
     "dev": "pnpm --filter @mak-98/dirvi-cli dev",
     "start": "pnpm --filter @mak-98/dirvi-cli start",
@@ -24,6 +26,7 @@
   },
   "homepage": "https://github.com/MAA-98/dirvi#readme",
   "devDependencies": {
-    "prettier": "^3.8.4"
+    "prettier": "^3.8.4",
+    "vitest": "^4.1.11"
   }
 }

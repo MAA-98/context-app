@@ -1,25 +1,5 @@
 import type { Key } from 'ink';
-
-export type UserInput =
-  | {
-      userInputType: 'character';
-      string: string;
-    }
-  | {
-      userInputType: 'esc';
-    }
-  | {
-      userInputType: 'rightArrow';
-    }
-  | {
-      userInputType: 'leftArrow';
-    }
-  | {
-      userInputType: 'downArrow';
-    }
-  | {
-      userInputType: 'upArrow';
-    };
+import { UserInput } from 'dirvi-lib';
 
 // Interprets raw user input to typed UserInput.
 export function inkInputToUserInput(
@@ -29,6 +9,18 @@ export function inkInputToUserInput(
   if (key.escape) {
     return {
       userInputType: 'esc',
+    };
+  }
+
+  if (key.return) {
+    return {
+      userInputType: 'enter',
+    };
+  }
+
+  if (key.backspace) {
+    return {
+      userInputType: 'backspace',
     };
   }
 
