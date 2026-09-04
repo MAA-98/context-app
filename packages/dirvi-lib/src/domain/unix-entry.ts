@@ -1,8 +1,7 @@
 import { z } from 'zod';
 import { UnixPath } from './unix-path.js';
 
-// UNIX ENTRY
-export const UnixEntryNameSchema = z
+export const PosixNameSchema = z
   .string()
   .min(1)
   .refine((value) => !value.includes('/'), {
@@ -12,11 +11,11 @@ export const UnixEntryNameSchema = z
     message: "Entry name cannot be '.' or '..'",
   });
 
-export type UnixEntryName = z.output<typeof UnixEntryNameSchema>;
+export type PosixName = z.output<typeof PosixNameSchema>;
 
 export function entryNamesEqual(
-  left: UnixEntryName[],
-  right: UnixEntryName[],
+  left: PosixName[],
+  right: PosixName[],
 ): boolean {
   return (
     left.length === right.length &&
@@ -27,16 +26,16 @@ export function entryNamesEqual(
 export type UnixEntry =
   | {
       kind: 'file';
-      name: UnixEntryName;
+      name: PosixName;
     }
   | {
       kind: 'symlink';
-      name: UnixEntryName;
+      name: PosixName;
       target: UnixPath;
     }
   | {
       kind: 'directory';
-      name: UnixEntryName;
+      name: PosixName;
       // Undefined entries for lazy loading the 'buffer'
       entries?: UnixEntry[];
     };
@@ -155,7 +154,7 @@ export const UnixEntry = {
   },
 };
 
-export type UnixEntryPath = UnixEntryName[];
+export type UnixEntryPath = PosixName[];
 
 export const UnixEntryPath = {
   equal(left: UnixEntryPath, right: UnixEntryPath): boolean {

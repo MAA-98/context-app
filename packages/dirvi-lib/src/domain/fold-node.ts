@@ -1,8 +1,8 @@
-import { UnixEntry, UnixEntryName, UnixEntryPath } from './unix-entry.js';
+import { UnixEntry, PosixName, UnixEntryPath } from './unix-entry.js';
 
 export type FoldNode = {
-  children: Record<UnixEntryName, FoldNode>;
-  folds: UnixEntryName[];
+  children: Record<PosixName, FoldNode>;
+  folds: PosixName[];
 };
 
 export const FoldNode = {
@@ -30,7 +30,7 @@ export const FoldNode = {
   // Command/Modifer-Like
   modifyAtPath(
     rootNode: FoldNode,
-    path: UnixEntryName[],
+    path: PosixName[],
     modifier: (targetNode: FoldNode) => FoldNode,
   ): FoldNode {
     const [currentName, ...remainingPath] = path;
@@ -67,7 +67,7 @@ export const FoldNode = {
 
   addFoldedEntryAtPath(
     rootNode: FoldNode,
-    path: UnixEntryName[],
+    path: PosixName[],
     entry: UnixEntry,
   ): FoldNode {
     return FoldNode.modifyAtPath(rootNode, path, (node) =>
@@ -77,7 +77,7 @@ export const FoldNode = {
 
   createEmpty(): FoldNode {
     return {
-      children: Object.create(null) as Record<UnixEntryName, FoldNode>,
+      children: Object.create(null) as Record<PosixName, FoldNode>,
       folds: [],
     };
   },
@@ -112,21 +112,18 @@ export const FoldNode = {
 // PRIVATE HELPERS
 
 // Queries
-function hasFoldedEntryNamed(
-  node: FoldNode,
-  entryName: UnixEntryName,
-): boolean {
+function hasFoldedEntryNamed(node: FoldNode, entryName: PosixName): boolean {
   return node.folds.includes(entryName);
 }
 
-function uniqueEntryNames(entryNames: UnixEntryName[]): UnixEntryName[] {
+function uniqueEntryNames(entryNames: PosixName[]): PosixName[] {
   return [...new Set(entryNames)];
 }
 
 // Adding
 function setFoldedEntriesNamed(
   node: FoldNode,
-  entryNames: UnixEntryName[],
+  entryNames: PosixName[],
 ): FoldNode {
   const uniqueNames = uniqueEntryNames(entryNames);
 

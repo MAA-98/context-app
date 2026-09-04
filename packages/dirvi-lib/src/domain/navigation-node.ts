@@ -1,4 +1,4 @@
-import { UnixEntry, UnixEntryName, UnixEntryPath } from './unix-entry.js';
+import { UnixEntry, PosixName, UnixEntryPath } from './unix-entry.js';
 import { UnixPath } from './unix-path.js';
 import { FoldNode } from './fold-node.js';
 import { Cursor } from './cursor.js';
@@ -6,11 +6,11 @@ import { Cursor } from './cursor.js';
 export type NavigationEntry =
   | {
       kind: 'file';
-      name: UnixEntryName;
+      name: PosixName;
     }
   | {
       kind: 'symlink';
-      name: UnixEntryName;
+      name: PosixName;
       target: UnixPath;
     }
   | {
@@ -18,7 +18,7 @@ export type NavigationEntry =
        * Undefined node means the directory has not been loaded.
        */
       kind: 'directory';
-      name: UnixEntryName;
+      name: PosixName;
       node?: NavigationNode;
     };
 

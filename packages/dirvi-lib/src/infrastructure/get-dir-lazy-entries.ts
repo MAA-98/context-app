@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import type { UnixAbsolutePath } from '../domain/unix-path.js';
 import { UnixPathSchema } from '../domain/unix-path.js';
 import type { UnixEntry } from '../domain/unix-entry.js';
-import { UnixEntryNameSchema } from '../domain/unix-entry.js';
+import { PosixNameSchema } from '../domain/unix-entry.js';
 
 export async function getDirLazyEntries(
   address: UnixAbsolutePath,
@@ -15,7 +15,7 @@ export async function getDirLazyEntries(
 
   return Promise.all(
     directoryEntries.map(async (directoryEntry): Promise<UnixEntry> => {
-      const name = UnixEntryNameSchema.parse(directoryEntry.name);
+      const name = PosixNameSchema.parse(directoryEntry.name);
 
       if (directoryEntry.isSymbolicLink()) {
         const target = UnixPathSchema.parse(

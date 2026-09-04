@@ -1,9 +1,4 @@
-import {
-  getCwdAbsPath,
-  getDirLazyEntries,
-  FoldNode,
-  DisplayEntry,
-} from 'dirvi-lib';
+import { getCwdAbsPath, getDirLazyEntries, FoldNode } from 'dirvi-lib';
 import { ShellAppProps } from '../ui/AppShell.js';
 
 export async function loadInitialProps(): Promise<ShellAppProps> {
@@ -34,7 +29,7 @@ export async function loadInitialProps(): Promise<ShellAppProps> {
       cursor: {
         kind: 'entry',
         parentPath: [],
-        entryName: DisplayEntry.fromUnixEntry(firstEntry).name,
+        entryName: firstEntry.name,
       },
       folds: FoldNode.createEmpty(),
     },
