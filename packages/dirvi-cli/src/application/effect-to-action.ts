@@ -1,15 +1,22 @@
-import { NavigationNode, State, EffectAction } from 'dirvi-lib';
+import {
+  State,
+  EffectAction,
+  PosixNavNode,
+  PosixState,
+  PosixNavApi,
+  PosixNodeApi,
+} from 'dirvi-lib';
 
 import type { ReducerAction } from './reducer-action.js';
 
 export function effectToAction(
   effectAction: EffectAction,
-  navigation: NavigationNode,
-  state: State,
+  navigation: PosixNavNode,
+  state: PosixState,
 ): ReducerAction | undefined {
   switch (effectAction.effectActionType) {
     case 'nextEntry': {
-      const cursor = NavigationNode.nextCursor(navigation, state.cursor);
+      const cursor = PosixNavApi.nextCursor(navigation, state.cursor);
 
       return cursor === undefined
         ? undefined
@@ -20,7 +27,7 @@ export function effectToAction(
     }
 
     case 'prevEntry': {
-      const cursor = NavigationNode.previousCursor(navigation, state.cursor);
+      const cursor = PosixNavApi.previousCursor(navigation, state.cursor);
 
       return cursor === undefined
         ? undefined
@@ -38,7 +45,7 @@ export function effectToAction(
       };
 
     case 'outDir': {
-      const cursor = NavigationNode.parentCursor(navigation, state.cursor);
+      const cursor = PosixNavApi.parentCursor(navigation, state.cursor);
 
       return cursor === undefined
         ? undefined
@@ -55,13 +62,13 @@ export function effectToAction(
 
       const path = [...state.cursor.parentPath, state.cursor.entryName];
 
-      const entry = NavigationNode.getEntryAtPath(navigation, path);
+      const entry = PosixNodeApi.getAtPath(state.buffer, path);
 
       if (entry === undefined) {
         return undefined;
       }
 
-      const cursor = NavigationNode.cursorAfterFold(navigation, state.cursor);
+      const cursor = PosixNavApi.cursorAfterFold(navigation, state.cursor);
       if (cursor === undefined) {
         return undefined;
       }
@@ -69,7 +76,7 @@ export function effectToAction(
       return {
         kind: 'fold',
         parentPath: state.cursor.parentPath,
-        entry,
+        entry, // Should be PosixNode
         cursor,
       };
     }
@@ -79,7 +86,7 @@ export function effectToAction(
         return undefined;
       }
 
-      const node = NavigationNode.getNodeAtPath(
+      const node = PosixNavApi.getNodeAtPath(
         navigation,
         state.cursor.parentPath,
       );

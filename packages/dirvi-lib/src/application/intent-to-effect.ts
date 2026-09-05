@@ -1,7 +1,10 @@
 import { Effect, EffectAction } from '../domain/effect.js';
-import { State, View } from '../domain/state.js';
-import { Cursor } from '../domain/cursor.js';
 import { Intent } from '../domain/intent.js';
+import {
+  PosixCursorApi,
+  PosixState,
+  PosixStateApi,
+} from '../domain/posix-node.js';
 
 function dispatchAction(action: EffectAction): Effect {
   return {
@@ -13,7 +16,7 @@ function dispatchAction(action: EffectAction): Effect {
 // Effect derived from intent and the state.
 export function intentToEffect(
   intent: Intent,
-  state: State,
+  state: PosixState,
 ): Effect | undefined {
   switch (intent.intentType) {
     case 'setNormalBuffer':
@@ -124,21 +127,21 @@ function normalBufferToEffectResult(
   }
 }
 
-function normalInteractRightToEffect(state: State): Effect | undefined {
-  const currentEntry = View.getEntryAtCursor(state);
+function normalInteractRightToEffect(state: PosixState): Effect | undefined {
+  const currentEntry = PosixStateApi.getNodeAtCursor(state);
 
   if (currentEntry === undefined) {
     return undefined;
   }
 
-  const path = Cursor.getPath(state.cursor);
+  const path = PosixCursorApi.getPath(state.cursor);
 
   if (path === undefined) {
     return undefined;
   }
 
   if (currentEntry.kind === 'directory') {
-    if (currentEntry.entries === undefined) {
+    if (currentEntry.branches === undefined) {
       return {
         effectType: 'loadDir',
         path,
@@ -147,7 +150,7 @@ function normalInteractRightToEffect(state: State): Effect | undefined {
       return dispatchAction({
         effectActionType: 'updateDir',
         path,
-        entries: undefined,
+        entries: null,
       });
     }
   }
@@ -164,7 +167,7 @@ function normalInteractRightToEffect(state: State): Effect | undefined {
   return undefined;
 }
 
-function normalInteractLeftToEffect(state: State): Effect | undefined {
+function normalInteractLeftToEffect(state: PosixState): Effect | undefined {
   if (state.cursor.parentPath.length === 0) {
     return undefined;
   }

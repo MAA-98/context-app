@@ -1,23 +1,25 @@
-import { Cursor, UnixEntry, UnixEntryPath } from 'dirvi-lib';
+import type { PosixCursor, PosixName, PosixNode } from 'dirvi-lib';
+
+export type PosixEntryPath = PosixName[];
 
 export type ReducerAction =
   | {
       kind: 'changeCursor';
-      cursor: Cursor;
+      cursor: PosixCursor;
     }
   | {
       kind: 'updateDir';
-      path: UnixEntryPath;
-      entries: UnixEntry[] | undefined;
+      path: PosixEntryPath;
+      entries: PosixNode[] | null; // null for unloaded
     }
   | {
       kind: 'fold';
-      parentPath: UnixEntryPath;
-      entry: UnixEntry;
-      cursor: Cursor;
+      parentPath: PosixEntryPath;
+      entry: PosixNode;
+      cursor: PosixCursor;
     }
   | {
       kind: 'unfold';
-      parentPath: UnixEntryPath;
-      cursor: Cursor;
+      parentPath: PosixEntryPath;
+      cursor: PosixCursor;
     };

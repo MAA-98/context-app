@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import type { State } from '../domain/state.js';
+import type { PosixState } from '../domain/posix-node.js';
 import { intentToEffect } from './intent-to-effect.js';
 
-const state = {} as State;
+const state = {} as PosixState;
 
 describe('intentToEffectNoState', () => {
   describe('normal mode buffer', () => {

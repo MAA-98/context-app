@@ -1,9 +1,4 @@
-import {
-  Cursor,
-  NavigationEntry,
-  NavigationNode,
-  UnixEntryPath,
-} from 'dirvi-lib';
+import { PosixCursor, PosixName, PosixNavNode, PosixNode } from 'dirvi-lib';
 
 export type ViewRowType = 'file' | 'directory' | 'fold';
 
@@ -25,13 +20,13 @@ export type View = {
 };
 
 export const View = {
-  createRows(navigation: NavigationNode, cursor: Cursor): ViewRow[] {
+  createRows(navigation: PosixNavNode, cursor: PosixCursor): ViewRow[] {
     return viewRowsAtNode(navigation, [], cursor);
   },
 
   create(
-    navigation: NavigationNode,
-    cursor: Cursor,
+    navigation: PosixNavNode,
+    cursor: PosixCursor,
     viewportHeight: number,
     viewportStart: number,
   ): View {
@@ -44,33 +39,33 @@ export const View = {
 };
 
 function viewRowsAtNode(
-  node: NavigationNode,
-  parentPath: UnixEntryPath,
-  cursor: Cursor,
+  node: PosixNavNode,
+  parentPath: PosixName[],
+  cursor: PosixCursor,
 ): ViewRow[] {
   const rows: ViewRow[] = [];
 
   for (const entry of node.entries) {
     const isCursor =
       cursor.kind === 'entry' &&
-      UnixEntryPath.equal(cursor.parentPath, parentPath) &&
-      cursor.entryName === entry.name;
+      PosixName.seqEqual(cursor.parentPath, parentPath) &&
+      PosixName.equals(cursor.entryName, entry.name);
 
     rows.push(viewRowForEntry(entry, parentPath, isCursor));
 
-    if (entry.kind !== 'directory' || entry.node === undefined) {
+    if (entry.kind !== 'directory' || entry.branches === null) {
       continue;
     }
 
     rows.push(
-      ...viewRowsAtNode(entry.node, [...parentPath, entry.name], cursor),
+      ...viewRowsAtNode(entry.branches, [...parentPath, entry.name], cursor),
     );
   }
 
   if (node.foldedEntries.length > 0) {
     const isCursor =
       cursor.kind === 'fold' &&
-      UnixEntryPath.equal(cursor.parentPath, parentPath);
+      PosixName.seqEqual(cursor.parentPath, parentPath);
 
     rows.push({
       id: foldId(parentPath),
@@ -86,8 +81,8 @@ function viewRowsAtNode(
 }
 
 function viewRowForEntry(
-  entry: NavigationEntry,
-  parentPath: UnixEntryPath,
+  entry: PosixNavNode['entries'][number],
+  parentPath: PosixName[],
   cursor: boolean,
 ): ViewRow {
   return {
@@ -100,15 +95,15 @@ function viewRowForEntry(
   };
 }
 
-function entryId(parentPath: UnixEntryPath, entryName: string): string {
+function entryId(parentPath: PosixName[], entryName: string): string {
   return `entry:${JSON.stringify([...parentPath, entryName])}`;
 }
 
-function foldId(parentPath: UnixEntryPath): string {
+function foldId(parentPath: PosixName[]): string {
   return `fold:${JSON.stringify(parentPath)}`;
 }
 
-function content(entry: NavigationEntry): string {
+function content(entry: PosixNavNode['entries'][number]): string {
   switch (entry.kind) {
     case 'file':
       return entry.name;
@@ -117,11 +112,11 @@ function content(entry: NavigationEntry): string {
       return `${entry.name}/`;
 
     case 'symlink':
-      return `${entry.name} -> ${entry.target}`;
+      return `${entry.name}`;
   }
 }
 
-function type(entry: NavigationEntry): ViewRowType {
+function type(entry: PosixNavNode['entries'][number]): ViewRowType {
   switch (entry.kind) {
     case 'file':
       return 'file';

@@ -1,14 +1,13 @@
-import { NavigationNode, State } from 'dirvi-lib';
+import { PosixNavNode, PosixState } from 'dirvi-lib';
 import { View, ViewRow } from '../view.js';
-import { useWindowSize } from 'ink';
 import { useRef } from 'react';
 import { STATUS_BAR_HEIGHT } from '../components/StatusBar.js';
 
 // Hooks that keeps Ref of the viewport's start, and returns View sliced to
 // only the rows that should be visible.
 export function useView(
-  navigation: NavigationNode,
-  state: State,
+  navigation: PosixNavNode,
+  state: PosixState,
   terminalRows: number,
 ): View {
   const viewportStartRef = useRef(0);

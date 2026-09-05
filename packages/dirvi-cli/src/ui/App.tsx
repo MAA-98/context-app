@@ -7,15 +7,15 @@ import {
   getDirLazyEntries,
   InputState,
   intentToEffect,
-  NavigationNode,
-  State,
+  PosixNavApi,
+  PosixState,
   userInputToIntent,
 } from 'dirvi-lib';
 import type { UnixAbsolutePath } from 'dirvi-lib';
 
 import { useView } from './hooks/useView.js';
 import { reducer } from '../application/reducer.js';
-import { EventMessage } from '../domain/event-message.js';
+import type { EventMessage } from '../domain/event-message.js';
 import { ViewRowComponent } from './components/ViewRowComponent.js';
 import { effectToAction } from '../application/effect-to-action.js';
 import { StatusBar } from './components/StatusBar.js';
@@ -23,7 +23,7 @@ import { inkInputToUserInput } from '../infrastructure/ink-input-to-user-input.j
 
 export type AppProps = {
   cwdAddress: UnixAbsolutePath;
-  initialState: State;
+  initialState: PosixState;
   print?: (message: EventMessage) => void;
   onError?: (error: Error) => void;
 };
@@ -31,8 +31,8 @@ export type AppProps = {
 export function App({ cwdAddress, initialState, print, onError }: AppProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const navigation = useMemo(
-    () => NavigationNode.from(state.buffer, state.folds),
-    [state.buffer, state.folds],
+    () => PosixNavApi.from(state.buffer, state.foldNode),
+    [state.buffer, state.foldNode],
   );
 
   const [inputState, setInputState] = useState<InputState>({
@@ -48,9 +48,10 @@ export function App({ cwdAddress, initialState, print, onError }: AppProps) {
   useEffect(() => {
     print?.({ type: 'view', view: state });
 
-    const visibleFilesPaths = NavigationNode.visibleFilesPaths(navigation).map(
-      (path) => join(...path),
-    );
+    const visibleFilesPaths = PosixNavApi.visibleFilesPaths(
+      navigation,
+      (entry) => entry.kind === 'file',
+    ).map((path) => join(...path));
     print?.({
       type: 'displayed-files-paths',
       paths: visibleFilesPaths,

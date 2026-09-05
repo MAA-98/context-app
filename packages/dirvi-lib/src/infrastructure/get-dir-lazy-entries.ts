@@ -3,18 +3,17 @@ import { join } from 'node:path';
 
 import type { UnixAbsolutePath } from '../domain/unix-path.js';
 import { UnixPathSchema } from '../domain/unix-path.js';
-import type { UnixEntry } from '../domain/unix-entry.js';
-import { PosixNameSchema } from '../domain/unix-entry.js';
+import { PosixNameSchema, PosixNode } from '../domain/posix-node.js';
 
 export async function getDirLazyEntries(
   address: UnixAbsolutePath,
-): Promise<UnixEntry[]> {
+): Promise<PosixNode[]> {
   const directoryEntries = await readdir(address, {
     withFileTypes: true,
   });
 
   return Promise.all(
-    directoryEntries.map(async (directoryEntry): Promise<UnixEntry> => {
+    directoryEntries.map(async (directoryEntry): Promise<PosixNode> => {
       const name = PosixNameSchema.parse(directoryEntry.name);
 
       if (directoryEntry.isSymbolicLink()) {
@@ -33,7 +32,7 @@ export async function getDirLazyEntries(
         return {
           kind: 'directory',
           name,
-          // Deliberately omitted: this directory has not been expanded.
+          branches: null, // This directory has not been expanded.
         };
       }
 

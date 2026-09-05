@@ -1,36 +1,55 @@
 import { Text } from 'ink';
-
-import { UnixAbsolutePath, State } from 'dirvi-lib';
-
 import { EventMessage } from '../domain/event-message.js';
 import { App } from './App.js';
-
-// Represents state of directory being empty
-export type EmptyView = {
-  cursor: undefined;
-};
+import { useEffect, useState } from 'react';
+import { loadInitialPosixProps } from '../infrastructure/load-initial-posix-props.js';
+import { PosixAppProps } from '../application/posix-app.js';
 
 export type ShellAppProps = {
-  cwdAddress: UnixAbsolutePath;
-  initialState: State | EmptyView;
   print?: (message: EventMessage) => void;
   onError?: (error: Error) => void;
 };
 
-export function AppShell({
-  cwdAddress,
-  initialState,
-  print,
-  onError,
-}: ShellAppProps) {
-  if (initialState.cursor === undefined) {
-    return <Text dimColor>Directory is empty.</Text>;
+export function AppShell({ print, onError }: ShellAppProps) {
+  const [props, setProps] = useState<PosixAppProps>();
+  const [error, setError] = useState<Error>();
+
+  useEffect(() => {
+    let mounted = true;
+
+    loadInitialPosixProps()
+      .then((props) => {
+        if (mounted) {
+          setProps(props);
+        }
+      })
+      .catch((cause: unknown) => {
+        const nextError =
+          cause instanceof Error ? cause : new Error(String(cause));
+
+        if (mounted) {
+          setError(nextError);
+          onError?.(nextError);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (props === undefined) {
+    return <Text dimColor>Loading.</Text>;
+  }
+
+  if (props.initialState === null) {
+    return <Text dimColor>Empty.</Text>;
   }
 
   return (
     <App
-      cwdAddress={cwdAddress}
-      initialState={initialState}
+      cwdAddress={props.cwdAddress}
+      initialState={props.initialState}
       print={print}
       onError={onError}
     />

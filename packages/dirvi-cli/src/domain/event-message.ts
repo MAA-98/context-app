@@ -1,9 +1,9 @@
-import { UnixEntryPath, State } from 'dirvi-lib';
+import { PosixName, PosixState, State } from 'dirvi-lib';
 
 export type EventMessage =
   | {
       type: 'view';
-      view: State;
+      view: PosixState;
     }
   | {
       type: 'displayed-files-paths';
@@ -11,5 +11,5 @@ export type EventMessage =
     }
   | {
       type: 'file';
-      path: UnixEntryPath;
+      path: PosixName[];
     };

@@ -1,16 +1,14 @@
-import { getCwdAbsPath, getDirLazyEntries, FoldNode } from 'dirvi-lib';
-import { ShellAppProps } from '../ui/AppShell.js';
+import { getCwdAbsPath, getDirLazyEntries, PosixFoldNodeApi } from 'dirvi-lib';
+import type { PosixAppProps } from '../application/posix-app.js';
 
-export async function loadInitialProps(): Promise<ShellAppProps> {
+export async function loadInitialPosixProps(): Promise<PosixAppProps> {
   const cwdAddress = getCwdAbsPath();
   const lazyEntries = await getDirLazyEntries(cwdAddress);
 
   if (lazyEntries.length === 0) {
     return {
       cwdAddress,
-      initialState: {
-        cursor: undefined,
-      },
+      initialState: null,
     };
   }
 
@@ -31,7 +29,7 @@ export async function loadInitialProps(): Promise<ShellAppProps> {
         parentPath: [],
         entryName: firstEntry.name,
       },
-      folds: FoldNode.createEmpty(),
+      foldNode: PosixFoldNodeApi.createEmpty(),
     },
   };
 }

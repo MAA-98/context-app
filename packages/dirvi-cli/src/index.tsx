@@ -3,7 +3,6 @@ import { Command } from 'commander';
 import { render } from 'ink';
 
 import { AppShell } from './ui/AppShell.js';
-import { loadInitialProps } from './infrastructure/load-initial-props.js';
 import { EventMessage } from './domain/event-message.js';
 
 const program = new Command();
@@ -47,7 +46,6 @@ program
   .version('0.4.0')
   .helpOption('--help')
   .action(async () => {
-    const initialProps = await loadInitialProps();
     let appError: Error | undefined;
 
     const useAlternateScreen = uiOutput.isTTY === true;
@@ -60,7 +58,6 @@ program
     try {
       const app = render(
         <AppShell
-          {...initialProps}
           print={process.stdout.isTTY ? undefined : emitEventMsg}
           onError={(error) => {
             appError = error;

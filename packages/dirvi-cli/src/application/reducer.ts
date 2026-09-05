@@ -1,7 +1,7 @@
-import { UnixEntry, State, FoldNode } from 'dirvi-lib';
+import { PosixFoldNodeApi, PosixNodeApi, PosixState } from 'dirvi-lib';
 import { ReducerAction } from './reducer-action.js';
 
-export function reducer(state: State, action: ReducerAction): State {
+export function reducer(state: PosixState, action: ReducerAction): PosixState {
   switch (action.kind) {
     case 'changeCursor':
       return {
@@ -10,39 +10,45 @@ export function reducer(state: State, action: ReducerAction): State {
       };
 
     case 'updateDir':
+      const buffer = PosixNodeApi.setBranchesAtPath(
+        state.buffer,
+        action.path,
+        action.entries,
+      );
+
+      if (buffer === undefined) {
+        return state;
+      }
+
       return {
         ...state,
-        buffer: UnixEntry.setEntriesAtPath(
-          state.buffer,
-          action.path,
-          action.entries,
-        ),
+        buffer,
       };
 
     case 'fold': {
-      const folds = FoldNode.addFoldedEntryAtPath(
-        state.folds,
+      const foldNode = PosixFoldNodeApi.addFoldedEntryAtPath(
+        state.foldNode,
         action.parentPath,
         action.entry,
       );
 
       return {
         ...state,
-        folds,
+        foldNode,
         cursor: action.cursor,
       };
     }
 
     case 'unfold': {
-      const folds = FoldNode.modifyAtPath(
-        state.folds,
+      const foldNode = PosixFoldNodeApi.modifyAtPath(
+        state.foldNode,
         action.parentPath,
-        (node) => FoldNode.clearFoldedEntries(node),
+        (node) => PosixFoldNodeApi.clearFoldedEntries(node),
       );
 
       return {
         ...state,
-        folds,
+        foldNode,
         cursor: action.cursor,
       };
     }

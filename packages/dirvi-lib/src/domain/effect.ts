@@ -1,5 +1,5 @@
-import { UnixEntry, UnixEntryPath } from './unix-entry.js';
 import { InputState } from './input-state.js';
+import { PosixName, PosixNode } from './posix-node.js';
 
 // Still pure actions, but more semantic than ReducerActions.
 export type Effect =
@@ -9,11 +9,11 @@ export type Effect =
     }
   | {
       effectType: 'loadDir';
-      path: UnixEntryPath;
+      path: PosixName[];
     }
   | {
       effectType: 'printFile';
-      path: UnixEntryPath;
+      path: PosixName[];
     }
   | {
       effectType: 'quit';
@@ -34,8 +34,8 @@ export type EffectAction =
     }
   | {
       effectActionType: 'updateDir';
-      path: UnixEntryPath;
-      entries: UnixEntry[] | undefined;
+      path: PosixName[];
+      entries: PosixNode[] | null;
     }
   | {
       effectActionType: 'outDir';
